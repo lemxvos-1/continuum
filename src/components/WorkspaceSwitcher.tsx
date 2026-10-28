@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArchiveBox, Check, ChevronDown, ChevronRight, Plus, Trash2 } from "@/lib/heroicons";
+import { ArchiveBox, Check, ChevronRight, Plus, Trash2 } from "@/lib/heroicons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,7 +75,7 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
       >
         {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4" />}
         <span className="flex-1 truncate">{cur.name}</span>
-        {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+        <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", expanded && "rotate-90")} />
       </DropdownMenuItem>
       {expanded && (
         <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-[inherit] bg-popover">

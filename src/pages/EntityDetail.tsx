@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, ChevronDown, ChevronUp } from "@/lib/heroicons";
 import { EntitySection, EntityLinkRow } from "@/components/entity/EntityParts";
 import { InsightSignalBadge } from "@/components/InsightSignal";
+import { ExpandableEntityDescription } from "@/components/ExpandableEntityDescription";
 
 import { useToast } from "@/hooks/use-toast";
 import { ActivityAnalyticsCalendar } from "@/components/ActivityAnalyticsCalendar";
@@ -479,14 +480,13 @@ export default function EntityDetail() {
               <p className="text-right text-[10px] text-muted-foreground">{t("ent_description_character_count", { count: newDescription.length })}</p>
             </div>
           ) : entity.description ? (
-            <button
-              type="button"
-              onClick={startEditDescription}
-              className="mt-3 max-w-2xl cursor-text whitespace-pre-wrap break-words text-left text-sm leading-6 text-muted-foreground"
-              aria-label={t("ent_edit_description")}
-            >
-              {entity.description}
-            </button>
+            <div className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              <ExpandableEntityDescription
+                key={entity.id}
+                description={entity.description}
+                onEdit={startEditDescription}
+              />
+            </div>
           ) : (
             <button type="button" onClick={startEditDescription} className="mt-3 text-sm italic text-muted-foreground/60 hover:text-muted-foreground">
               {t("ent_add_description_placeholder")}

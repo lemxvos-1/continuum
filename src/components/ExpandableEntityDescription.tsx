@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 interface ExpandableEntityDescriptionProps {
   description: string;
   className?: string;
+  onEdit?: () => void;
 }
 
-export function ExpandableEntityDescription({ description, className }: ExpandableEntityDescriptionProps) {
+export function ExpandableEntityDescription({ description, className, onEdit }: ExpandableEntityDescriptionProps) {
   const { t } = useLanguage();
   const paragraphId = useId();
   const paragraphRef = useRef<HTMLParagraphElement>(null);
@@ -46,9 +47,20 @@ export function ExpandableEntityDescription({ description, className }: Expandab
         ref={paragraphRef}
         className={cn(
           "whitespace-pre-wrap break-words",
+          onEdit && "cursor-text",
           !expanded && "line-clamp-2",
           className,
         )}
+        onClick={onEdit}
+        onKeyDown={onEdit ? (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onEdit();
+          }
+        } : undefined}
+        role={onEdit ? "button" : undefined}
+        tabIndex={onEdit ? 0 : undefined}
+        aria-label={onEdit ? t("ent_edit_description") : undefined}
       >
         {visibleDescription}
       </p>
