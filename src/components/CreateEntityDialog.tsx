@@ -97,8 +97,8 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
       description={selected.hint}
       bodyClassName="overflow-hidden"
     >
-      <div className="space-y-4 px-5 pb-6">
-        <div className="space-y-1.5">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-5 pb-6">
+        <div className="shrink-0 space-y-1.5">
           <Label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("ent_title")}</Label>
           <Input
             autoFocus
@@ -116,7 +116,7 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
         </div>
 
         {!lockType && (
-          <div className="space-y-1.5">
+          <div className="shrink-0 space-y-1.5">
             <Label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("ent_type")}</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="h-11 justify-between border-border/10 bg-foreground/[0.03] text-left">
@@ -136,22 +136,21 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
           </div>
         )}
 
-        <div className="space-y-1.5">
+        <div className="flex min-h-0 flex-1 flex-col gap-1.5">
           <Label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("ent_description_optional")}</Label>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t("ent_a_short_note")}
             maxLength={MAX_ENTITY_DESCRIPTION_LENGTH}
-            className="max-h-[20dvh] resize-none overflow-y-auto border-border/10 bg-foreground/[0.03] focus-visible:ring-ring"
-            rows={4}
+            className="min-h-[6rem] max-h-[20dvh] flex-1 resize-none overflow-y-auto border-border/10 bg-foreground/[0.03] focus-visible:ring-ring"
           />
-          <p className="text-right text-[10px] text-muted-foreground">
+          <p className="shrink-0 text-right text-[10px] text-muted-foreground">
             {t("ent_description_character_count", { count: description.length })}
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2">
+        <div className="flex shrink-0 items-center justify-end gap-2 pt-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
             {t("ent_cancel")}
           </Button>
