@@ -95,6 +95,8 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
       onOpenChange={onOpenChange}
       title={t("ent_new_type", { type: selected.label })}
       description={selected.hint}
+      className="max-h-[80dvh] overflow-hidden"
+      bodyClassName="overflow-y-auto"
     >
       <div className="space-y-4 px-5 pb-6">
         <div className="space-y-1.5">
@@ -143,7 +145,7 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t("ent_a_short_note")}
             maxLength={MAX_ENTITY_DESCRIPTION_LENGTH}
-            className="bg-foreground/[0.03] border-border/10 focus-visible:ring-ring"
+            className="max-h-none overflow-visible border-border/10 bg-foreground/[0.03] focus-visible:ring-ring"
             rows={1}
           />
           <p className="text-right text-[10px] text-muted-foreground">
