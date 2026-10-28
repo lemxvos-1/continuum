@@ -345,6 +345,7 @@ export default function EntityDetail() {
 
   const isHabit = entity.type === "ACTIVITY";
   const isProject = entity.type === "PROJECT";
+  const todayIso = localToday();
   const today = new Date().toISOString().split("T")[0];
   const trackedToday = entity.trackingDates?.some((date) => date.startsWith(today));
   const typeLabelKey = `ent_type_${entity.type.toLowerCase()}`;

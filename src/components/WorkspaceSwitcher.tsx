@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronRight, Plus, Trash2, Squares2x2 } from "@/lib/heroicons";
+import { ArchiveBox, Check, ChevronRight, Plus, Trash2 } from "@/lib/heroicons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,7 +73,7 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
         onSelect={(e) => { e.preventDefault(); onExpandedChange?.(!expanded); }}
         className="gap-2"
       >
-        {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <Squares2x2 className="h-4 w-4" />}
+        {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4" />}
         <span className="flex-1 truncate">{cur.name}</span>
       </DropdownMenuItem>
       {expanded && (
@@ -83,14 +83,14 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
             onClick={() => onExpandedChange?.(false)}
             className="flex shrink-0 items-center gap-2 border-b border-border/10 px-3 py-2.5 text-left text-sm"
           >
-            <Squares2x2 className="h-4 w-4 text-muted-foreground" />
+            <ArchiveBox className="h-4 w-4 text-muted-foreground" />
             <span className="flex-1 truncate">{cur.name}</span>
             <span className="text-muted-foreground">‹</span>
           </button>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
             {items.map((i) => (
               <DropdownMenuItem key={i.id ?? "all"} onSelect={() => setActiveWorkspace(i.id)} className="gap-2">
-                {i.color ? <Dot color={i.color} className="mx-[3px]" /> : <Squares2x2 className="h-4 w-4 text-muted-foreground" />}
+                {i.color ? <Dot color={i.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4 text-muted-foreground" />}
                 <span className="flex-1 truncate">{i.name}</span>
                 {active === i.id && <Check className="h-4 w-4" />}
               </DropdownMenuItem>
@@ -174,14 +174,14 @@ export function WorkspaceSwitcher({ compact = false, className, listenForCreate 
               className,
             )}
           >
-            {current ? <Dot color={current.color} /> : <Squares2x2 className="h-4 w-4 text-muted-foreground" />}
+            {current ? <Dot color={current.color} /> : <ArchiveBox className="h-4 w-4 text-muted-foreground" />}
             {!compact && <span className="truncate">{current?.name ?? s.all}</span>}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">{s.title}</DropdownMenuLabel>
           <DropdownMenuItem onSelect={() => setActiveWorkspace(null)} className="gap-2">
-            <Squares2x2 className="h-4 w-4 text-muted-foreground" />
+            <ArchiveBox className="h-4 w-4 text-muted-foreground" />
             <span className="flex-1">{s.all}</span>
             {!active && <Check className="h-4 w-4" />}
           </DropdownMenuItem>
@@ -298,7 +298,7 @@ export function WorkspaceAssign({
             className="h-12 w-full justify-start gap-4 rounded-xl px-2 text-left hover:bg-secondary/60"
             aria-label={s.title}
           >
-            <Squares2x2 className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <ArchiveBox className="h-5 w-5 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
               {assignedNames.join(", ")}
             </span>
