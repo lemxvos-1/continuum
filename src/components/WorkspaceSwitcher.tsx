@@ -74,7 +74,7 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
         className="gap-2"
       >
         {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <Squares2x2 className="h-4 w-4" />}
-        <span className="flex-1 truncate">{s.title}: {cur.name}</span>
+        <span className="flex-1 truncate">{cur.name}</span>
       </DropdownMenuItem>
       {expanded && (
         <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-[inherit] bg-popover">
@@ -84,7 +84,7 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
             className="flex shrink-0 items-center gap-2 border-b border-border/10 px-3 py-2.5 text-left text-sm"
           >
             <Squares2x2 className="h-4 w-4 text-muted-foreground" />
-            <span className="flex-1 truncate">{s.title}: {cur.name}</span>
+            <span className="flex-1 truncate">{cur.name}</span>
             <span className="text-muted-foreground">‹</span>
           </button>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">

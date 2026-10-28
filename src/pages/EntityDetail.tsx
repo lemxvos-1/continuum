@@ -11,17 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, MoreHorizontal, ChevronDown, ChevronUp } from "@/lib/heroicons";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, ChevronDown, ChevronUp } from "@/lib/heroicons";
 import { EntitySection, EntityLinkRow } from "@/components/entity/EntityParts";
 import { InsightSignalBadge } from "@/components/InsightSignal";
-import { ExpandableEntityDescription } from "@/components/ExpandableEntityDescription";
 
 import { useToast } from "@/hooks/use-toast";
 import { ActivityAnalyticsCalendar } from "@/components/ActivityAnalyticsCalendar";
@@ -72,8 +64,6 @@ export default function EntityDetail() {
   const [newTitle, setNewTitle] = useState("");
   const [editingDescription, setEditingDescription] = useState(false);
   const [newDescription, setNewDescription] = useState("");
-  const [editingType, setEditingType] = useState(false);
-  const [newType, setNewType] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllEntities, setShowAllEntities] = useState(false);
@@ -285,38 +275,39 @@ export default function EntityDetail() {
     void handleToggleActivityDate(date, false, "ent_registered");
   };
 
-  const handleSaveTitle = async () => {
-    if (!id || !newTitle.trim()) return;
+  const handleSaveTitle = async (value: string) => {
+    const title = value.trim();
+    setEditingTitle(false);
+    if (!id || !title || title === entity?.title) return;
     try {
-      const { data } = await entitiesApi.update(id, { title: newTitle.trim() });
+      const { data } = await entitiesApi.update(id, { title });
       setEntity(data);
       queryClient.setQueryData(qk.entity(id), data);
       void queryClient.invalidateQueries({ queryKey: ["entities", "list"] });
-      setEditingTitle(false);
       toast({ title: t("ent_name_updated") });
     } catch { toast({ title: t("ent_error_updating"), variant: "destructive" }); }
   };
 
-  const handleSaveDescription = async () => {
-    if (!id) return;
+  const handleSaveDescription = async (value: string) => {
+    const description = value.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH).trim();
+    setEditingDescription(false);
+    if (!id || description === (entity?.description ?? "")) return;
     try {
-      const { data } = await entitiesApi.update(id, { description: newDescription.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH).trim() });
+      const { data } = await entitiesApi.update(id, { description });
       setEntity(data);
       queryClient.setQueryData(qk.entity(id), data);
       void queryClient.invalidateQueries({ queryKey: ["entities", "list"] });
-      setEditingDescription(false);
       toast({ title: t("ent_description_updated") });
     } catch { toast({ title: t("ent_error_updating_description"), variant: "destructive" }); }
   };
 
-  const handleSaveType = async () => {
-    if (!id || !newType) return;
+  const handleSaveType = async (type: string) => {
+    if (!id || !type || type === entity?.type) return;
     try {
-      const { data } = await entitiesApi.update(id, { type: newType });
+      const { data } = await entitiesApi.update(id, { type });
       setEntity(data);
       queryClient.setQueryData(qk.entity(id), data);
       void queryClient.invalidateQueries({ queryKey: ["entities", "list"] });
-      setEditingType(false);
       toast({ title: t("ent_type_updated") ?? "Entity type updated" });
     } catch { toast({ title: t("ent_error_updating"), variant: "destructive" }); }
   };
@@ -432,21 +423,16 @@ export default function EntityDetail() {
           >
             <ArrowLeft className="h-3.5 w-3.5" /> {t("ent_back")}
           </Button>
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="iconSm" className="rounded-full text-muted-foreground" aria-label={t("ent_more_actions")}>
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onSelect={startEditTitle}><Edit className="mr-2 h-4 w-4" /> {t("ent_edit_name")}</DropdownMenuItem>
-              <DropdownMenuItem onSelect={startEditDescription}><Edit className="mr-2 h-4 w-4" /> {t("ent_edit_description")}</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" /> {t("common_delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            type="button"
+            variant="ghost"
+            size="iconSm"
+            className="rounded-full text-muted-foreground hover:text-destructive"
+            aria-label={t("common_delete")}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Header */}
@@ -459,11 +445,16 @@ export default function EntityDetail() {
           </div>
 
           {editingTitle ? (
-            <div className="flex flex-wrap gap-2">
-              <Input autoFocus value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void handleSaveTitle(); }} placeholder={t("ent_new_name_placeholder")} className="min-w-0 flex-1" />
-              <Button size="sm" onClick={handleSaveTitle}>{t("ent_save")}</Button>
-              <Button size="sm" variant="outline" onClick={() => { setEditingTitle(false); setNewTitle(entity.title); }}>{t("ent_cancel")}</Button>
-            </div>
+            <Input
+              autoFocus
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onBlur={(e) => void handleSaveTitle(e.currentTarget.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+              placeholder={t("ent_new_name_placeholder")}
+              className="min-w-0 font-serif text-3xl sm:text-5xl"
+              aria-label={t("ent_edit_name")}
+            />
           ) : (
             <h1 onClick={startEditTitle} className="cursor-text break-words font-serif text-3xl leading-tight tracking-tight text-foreground sm:text-5xl">
               {entity.title}
@@ -472,17 +463,24 @@ export default function EntityDetail() {
 
           {editingDescription ? (
             <div className="mt-4 flex flex-col gap-2">
-              <Textarea autoFocus value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder={t("ent_add_description_placeholder")} className="text-sm" rows={3} maxLength={MAX_ENTITY_DESCRIPTION_LENGTH} />
+              <Textarea
+                autoFocus
+                autoResize
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                onBlur={(e) => void handleSaveDescription(e.currentTarget.value)}
+                placeholder={t("ent_add_description_placeholder")}
+                className="text-sm"
+                rows={1}
+                maxLength={MAX_ENTITY_DESCRIPTION_LENGTH}
+                aria-label={t("ent_edit_description")}
+              />
               <p className="text-right text-[10px] text-muted-foreground">{t("ent_description_character_count", { count: newDescription.length })}</p>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveDescription}>{t("ent_save")}</Button>
-                <Button size="sm" variant="outline" onClick={() => setEditingDescription(false)}>{t("ent_cancel")}</Button>
-              </div>
             </div>
           ) : entity.description ? (
-            <div className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              <ExpandableEntityDescription key={entity.id} description={entity.description} />
-            </div>
+            <p className="mt-3 max-w-2xl whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+              {entity.description}
+            </p>
           ) : (
             <button type="button" onClick={startEditDescription} className="mt-3 text-sm italic text-muted-foreground/60 hover:text-muted-foreground">
               {t("ent_add_description_placeholder")}
@@ -546,12 +544,12 @@ export default function EntityDetail() {
             <EntitySection title={t("ent_section_details")}>
               <div className="divide-y divide-border/10">
                 <div className="flex min-h-16 items-center gap-4 py-3">
-                  <EntityTypeIcon type={editingType ? newType : entity.type} className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  <EntityTypeIcon type={entity.type} className="h-5 w-5 shrink-0 text-muted-foreground" />
                   <span className="min-w-0 flex-1 text-sm font-medium text-foreground/80">{t("ent_type")}</span>
                   <div className="flex shrink-0 items-center gap-2">
                     <Select
-                      value={editingType ? newType : entity.type}
-                      onValueChange={(value) => { setNewType(value); setEditingType(value !== entity.type); }}
+                      value={entity.type}
+                      onValueChange={(value) => void handleSaveType(value)}
                     >
                       <SelectTrigger aria-label={t("ent_type")} className="h-8 w-[140px] text-xs">
                         <SelectValue />
@@ -564,7 +562,6 @@ export default function EntityDetail() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {editingType && <Button size="sm" onClick={handleSaveType}>{t("ent_save")}</Button>}
                   </div>
                 </div>
                 <div className="flex min-h-16 items-center gap-4 py-3">
