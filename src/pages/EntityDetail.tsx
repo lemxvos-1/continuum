@@ -65,7 +65,7 @@ export default function EntityDetail() {
   const [loading, setLoading] = useState(() => !id || !queryClient.getQueryData(qk.entity(id)));
   const [editingTitle, setEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [editingDescription, setEditingDescription] = useState(false);
+  const [editingDescriptionId, setEditingDescriptionId] = useState<string | null>(null);
   const [newDescription, setNewDescription] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
@@ -75,6 +75,7 @@ export default function EntityDetail() {
   const [relatedEntities, setRelatedEntities] = useState<EntityData[]>(() => id
     ? (queryClient.getQueryData<EntityData[]>(qk.entityConnections(id)) ?? []).filter((item) => item.id !== id)
     : []);
+  const editingDescription = editingDescriptionId === id;
 
   // Time tracking
   const { formatSeconds } = useTimeTracking();
@@ -292,7 +293,7 @@ export default function EntityDetail() {
   };
 
   const handleSaveDescription = async (value: string) => {
-    setEditingDescription(false);
+    setEditingDescriptionId(null);
     if (!id || value === (entity?.description ?? "")) return;
     const description = value.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH).trim();
     if (description === (entity?.description ?? "")) return;
@@ -369,7 +370,7 @@ export default function EntityDetail() {
   const shownNotes = showAllNotes ? relatedNotes : relatedNotes.slice(0, 2);
   const shownEntities = showAllEntities ? relatedEntities : relatedEntities.slice(0, 2);
   const startEditTitle = () => { setEditingTitle(true); setNewTitle(entity.title); };
-  const startEditDescription = () => { setEditingDescription(true); setNewDescription(entity.description || ""); };
+  const startEditDescription = () => { setEditingDescriptionId(entity.id); setNewDescription(entity.description || ""); };
 
   const linksColumn = (
     <>

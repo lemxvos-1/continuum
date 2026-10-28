@@ -48,9 +48,14 @@ export function ExpandableEntityDescription({ description, className, onEdit }: 
         className={cn(
           "min-w-0 flex-1 whitespace-pre-wrap break-words",
           onEdit && "cursor-text",
-          !expanded && "line-clamp-2",
           className,
         )}
+        style={!expanded ? {
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: 2,
+          overflow: "hidden",
+        } : undefined}
         onClick={onEdit}
         onKeyDown={onEdit ? (event) => {
           if (event.key === "Enter" || event.key === " ") {
