@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArchiveBox, Check, ChevronRight, Plus, Trash2 } from "@/lib/heroicons";
+import { ArchiveBox, Check, ChevronDown, ChevronRight, Plus, Trash2 } from "@/lib/heroicons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,6 +75,7 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
       >
         {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4" />}
         <span className="flex-1 truncate">{cur.name}</span>
+        {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
       </DropdownMenuItem>
       {expanded && (
         <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-[inherit] bg-popover">
@@ -107,15 +108,35 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
   );
 }
 
-export function WorkspaceSwitcher({ compact = false, className, listenForCreate = false }: { compact?: boolean; className?: string; listenForCreate?: boolean }) {
+export function WorkspaceSwitcher({
+  compact = false,
+  className,
+  listenForCreate = false,
+  open,
+  onOpenChange,
+  sidebarPopup = false,
+}: {
+  compact?: boolean;
+  className?: string;
+  listenForCreate?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  sidebarPopup?: boolean;
+}) {
   const s = useWorkspaceText();
   const active = useActiveWorkspace();
   const { data: workspaces = [], isSuccess } = useWorkspaces();
   const qc = useQueryClient();
+  const [internalOpen, setInternalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState(WORKSPACE_COLORS[0]);
   const [busy, setBusy] = useState(false);
+  const menuOpen = open ?? internalOpen;
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (open === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   useEffect(() => {
     if (!listenForCreate) return;
     const open = () => setCreating(true);
@@ -163,7 +184,7 @@ export function WorkspaceSwitcher({ compact = false, className, listenForCreate 
 
   return (
     <>
-      <DropdownMenu modal={false}>
+      <DropdownMenu modal={false} open={menuOpen} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
@@ -178,7 +199,10 @@ export function WorkspaceSwitcher({ compact = false, className, listenForCreate 
             {!compact && <span className="truncate">{current?.name ?? s.all}</span>}
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuContent
+          align="end"
+          className={cn("w-60", sidebarPopup && "border-sidebar-border/10 bg-sidebar/85 text-sidebar-foreground backdrop-blur-xl")}
+        >
           <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">{s.title}</DropdownMenuLabel>
           <DropdownMenuItem onSelect={() => setActiveWorkspace(null)} className="gap-2">
             <ArchiveBox className="h-4 w-4 text-muted-foreground" />

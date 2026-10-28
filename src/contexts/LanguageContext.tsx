@@ -472,6 +472,8 @@ const es: Dict = {
   entities_new: "Nueva entidad",
   entities_empty: "Aún no hay entidades.",
   entities_subtitle: "Personas, lugares y conceptos.",
+  entities_delete_one_title: "¿Eliminar entidad?",
+  entities_delete_one_desc: "{title} será movida a la Papelera. Puedes encontrarla en Ajustes.",
 
   activities_title: "Actividades",
   activities_new: "Nueva actividad",
@@ -1051,6 +1053,8 @@ const fr: Dict = {
   entities_new: "Nouvelle entité",
   entities_empty: "Aucune entité pour l'instant.",
   entities_subtitle: "Personnes, lieux et concepts.",
+  entities_delete_one_title: "Supprimer l’entité ?",
+  entities_delete_one_desc: "{title} sera déplacée vers la corbeille. Vous pouvez la retrouver dans les paramètres.",
 
   activities_title: "Activités",
   activities_new: "Nouvelle activité",

@@ -120,6 +120,7 @@ function SidebarLink({
 export function SessionNavBar() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [workspacePopupOpen, setWorkspacePopupOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -140,7 +141,10 @@ export function SessionNavBar() {
       variants={sidebarVariants}
       transition={transitionProps}
       onMouseEnter={() => setIsCollapsed(false)}
-      onMouseLeave={() => setIsCollapsed(true)}
+      onMouseLeave={() => {
+        setIsCollapsed(true);
+        setWorkspacePopupOpen(false);
+      }}
     >
       <div className="relative z-40 flex h-full w-full flex-col text-sidebar-foreground">
         {/* Brand / search trigger */}
@@ -212,7 +216,13 @@ export function SessionNavBar() {
 
           {/* Footer */}
           <div className="flex flex-col gap-1 border-t border-sidebar-border/10 p-2">
-            <WorkspaceSwitcher compact={isCollapsed} className={isCollapsed ? "" : "w-full max-w-none"} />
+            <WorkspaceSwitcher
+              compact={isCollapsed}
+              className={isCollapsed ? "" : "w-full max-w-none"}
+              open={workspacePopupOpen}
+              onOpenChange={setWorkspacePopupOpen}
+              sidebarPopup
+            />
             <div className="flex items-center gap-2">
               <button
                 type="button"
