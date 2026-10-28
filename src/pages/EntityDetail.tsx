@@ -471,7 +471,7 @@ export default function EntityDetail() {
                 onChange={(e) => setNewDescription(e.target.value)}
                 onBlur={(e) => void handleSaveDescription(e.currentTarget.value)}
                 placeholder={t("ent_add_description_placeholder")}
-                className="text-sm"
+                className="text-sm leading-6"
                 rows={1}
                 maxLength={MAX_ENTITY_DESCRIPTION_LENGTH}
                 aria-label={t("ent_edit_description")}
