@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, MoreHorizontal } from "@/lib/heroicons";
+import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, MoreHorizontal, ChevronDown, ChevronUp } from "@/lib/heroicons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,6 +88,8 @@ export default function EntityDetail() {
     if (isRestoring) return;
     if (!id) return;
     let cancelled = false;
+    setShowAllNotes(false);
+    setShowAllEntities(false);
     const cachedEntity = queryClient.getQueryData<EntityData>(qk.entity(id));
     const cachedNotes = queryClient.getQueryData<RelatedNote[]>(qk.entityNotes(id));
     const cachedConnections = queryClient.getQueryData<EntityData[]>(qk.entityConnections(id));
@@ -403,8 +405,8 @@ export default function EntityDetail() {
     const key = `ent_type_${type.toLowerCase()}`;
     return t(key) === key ? type.charAt(0) + type.slice(1).toLowerCase() : t(key);
   };
-  const shownNotes = showAllNotes ? relatedNotes : relatedNotes.slice(0, 5);
-  const shownEntities = showAllEntities ? relatedEntities : relatedEntities.slice(0, 5);
+  const shownNotes = showAllNotes ? relatedNotes : relatedNotes.slice(0, 2);
+  const shownEntities = showAllEntities ? relatedEntities : relatedEntities.slice(0, 2);
   const startEditTitle = () => { setEditingTitle(true); setNewTitle(entity.title); };
   const startEditDescription = () => { setEditingDescription(true); setNewDescription(entity.description?.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH) || ""); };
 
@@ -415,16 +417,17 @@ export default function EntityDetail() {
           {relatedNotes.length > 0 ? shownNotes.map((note) => (
             <EntityLinkRow
               key={note.id}
-              icon={<StickyNote className="h-4 w-4" />}
+              icon={<StickyNote className="h-3.5 w-3.5" />}
               title={note.title || t("notes_untitled")}
               meta={t("ent_updated", { date: formatLocalizedDate(note.updatedAt, language) })}
               onClick={() => navigate(`/notes/${note.id}`)}
             />
           )) : <p className="py-3 text-sm text-muted-foreground">{t("ent_no_connected_notes")}</p>}
         </div>
-        {relatedNotes.length > 5 && (
-          <Button variant="quiet" size="sm" className="rounded-full" onClick={() => setShowAllNotes((v) => !v)}>
+        {relatedNotes.length > 2 && (
+          <Button variant="quiet" size="sm" className="rounded-full" aria-expanded={showAllNotes} onClick={() => setShowAllNotes((v) => !v)}>
             {showAllNotes ? t("ent_show_less") : t("ent_show_all", { count: relatedNotes.length })}
+            {showAllNotes ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
         )}
       </EntitySection>
@@ -434,16 +437,17 @@ export default function EntityDetail() {
           {relatedEntities.length > 0 ? shownEntities.map((ent) => (
             <EntityLinkRow
               key={ent.id}
-              icon={<EntityTypeIcon type={ent.type} className="h-4 w-4" />}
+              icon={<EntityTypeIcon type={ent.type} className="h-3.5 w-3.5" />}
               title={ent.title}
               meta={typeName(ent.type)}
               onClick={() => navigate(`/entities/${ent.id}`)}
             />
           )) : <p className="py-3 text-sm text-muted-foreground">{t("ent_no_connected_entities")}</p>}
         </div>
-        {relatedEntities.length > 5 && (
-          <Button variant="quiet" size="sm" className="rounded-full" onClick={() => setShowAllEntities((v) => !v)}>
+        {relatedEntities.length > 2 && (
+          <Button variant="quiet" size="sm" className="rounded-full" aria-expanded={showAllEntities} onClick={() => setShowAllEntities((v) => !v)}>
             {showAllEntities ? t("ent_show_less") : t("ent_show_all", { count: relatedEntities.length })}
+            {showAllEntities ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
         )}
       </EntitySection>

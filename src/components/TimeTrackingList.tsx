@@ -6,7 +6,7 @@ import { useTimeTracking, type TimeEntitySummary } from '@/hooks/useTimeTracking
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Plus, ChevronDown, Loader2, Check, Trash2, Pin } from "@/lib/heroicons";
-import { CreateEntityDialog } from '@/components/CreateEntityDialog';
+import { CreateEntityDrawer } from '@/components/CreateEntityDrawer';
 import { ListRowContent } from '@/components/ui/list-row-content';
 import { EntityTypeIcon } from '@/components/ui/entity-type-icon';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -388,7 +388,7 @@ export function TimeTrackingList({
         </ul>
       )}
 
-      <CreateEntityDialog
+      <CreateEntityDrawer
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         defaultType={filterType || 'PROJECT'}

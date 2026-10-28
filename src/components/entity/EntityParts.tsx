@@ -36,7 +36,7 @@ export function EntityLinkRow({ icon, title, meta, onClick }: { icon: ReactNode;
       onClick={onClick}
       className="flex w-full items-center gap-3 border-b border-border/10 px-1 py-3 text-left transition-colors last:border-b-0 hover:bg-foreground/[0.03]"
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary/60 text-muted-foreground">{icon}</span>
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-secondary/60 text-muted-foreground">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm text-foreground">{title}</span>
         {meta && <span className="block truncate text-xs text-muted-foreground">{meta}</span>}
