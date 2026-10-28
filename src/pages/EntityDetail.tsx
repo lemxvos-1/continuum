@@ -38,6 +38,8 @@ interface EntityData { id: string; title: string; type: string; description?: st
 
 interface RelatedNote { id: string; title: string; createdAt: string; updatedAt: string; }
 
+const entityTitleClassName = "w-full min-w-0 font-serif text-3xl leading-tight tracking-tight text-foreground sm:text-5xl";
+
 function DetailStat({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof Calendar }) {
   return (
     <div className="flex min-w-0 items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5 sm:gap-2.5 sm:px-4">
@@ -454,11 +456,11 @@ export default function EntityDetail() {
               onBlur={(e) => void handleSaveTitle(e.currentTarget.value)}
               onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
               placeholder={t("ent_new_name_placeholder")}
-              className="min-w-0 font-serif text-3xl sm:text-5xl"
+              className={`${entityTitleClassName} h-auto rounded-none border-0 bg-transparent px-0 py-0 focus-visible:bg-transparent focus-visible:ring-0`}
               aria-label={t("ent_edit_name")}
             />
           ) : (
-            <h1 onClick={startEditTitle} className="cursor-text break-words font-serif text-3xl leading-tight tracking-tight text-foreground sm:text-5xl">
+            <h1 onClick={startEditTitle} className={`${entityTitleClassName} cursor-text break-words`}>
               {entity.title}
             </h1>
           )}
