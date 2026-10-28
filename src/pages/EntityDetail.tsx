@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, EllipsisHorizontal } from "@/lib/heroicons";
+import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, MoreHorizontal } from "@/lib/heroicons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -466,7 +466,7 @@ export default function EntityDetail() {
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="iconSm" className="rounded-full text-muted-foreground" aria-label={t("ent_more_actions")}>
-                <EllipsisHorizontal className="h-5 w-5" />
+                <MoreHorizontal className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
