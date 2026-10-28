@@ -44,7 +44,6 @@ interface SmoothDrawerProps {
   className?: string;
   overlayClassName?: string;
   bodyClassName?: string;
-  contentClassName?: string;
   /**
    * vaul resizes/offsets the drawer when the mobile keyboard opens. Pass `false`
    * to let the browser handle it — avoids the drawer getting stuck displaced
@@ -63,7 +62,6 @@ export default function SmoothDrawer({
   className,
   overlayClassName,
   bodyClassName,
-  contentClassName,
   repositionInputs = true,
   expandable = false,
   dragFromContent = false,
@@ -145,7 +143,7 @@ export default function SmoothDrawer({
               )}
             </DrawerHeader>
           </motion.div>
-          <motion.div variants={smoothDrawerItem as never} className={cn("min-h-0 flex-1", contentClassName)}>
+          <motion.div variants={smoothDrawerItem as never} className="min-h-0 flex-1">
             {children}
           </motion.div>
         </motion.div>
