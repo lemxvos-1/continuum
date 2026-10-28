@@ -11,13 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Loader2, Edit, StickyNote, Network, Calendar, Tag, Trash2 } from "@/lib/heroicons";
+import { ArrowLeft, Loader2, Edit, StickyNote, Calendar, Trash2, Check, EllipsisHorizontal } from "@/lib/heroicons";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EntitySection, EntityStatRow, EntityLinkRow, EntityDetailRow, currentStreak } from "@/components/entity/EntityParts";
 import { InsightSignalBadge } from "@/components/InsightSignal";
 import { ExpandableEntityDescription } from "@/components/ExpandableEntityDescription";
 
@@ -71,6 +73,8 @@ export default function EntityDetail() {
   const [editingType, setEditingType] = useState(false);
   const [newType, setNewType] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [showAllNotes, setShowAllNotes] = useState(false);
+  const [showAllEntities, setShowAllEntities] = useState(false);
   const [trackingDateBusy, setTrackingDateBusy] = useState(false);
   const [relatedNotes, setRelatedNotes] = useState<RelatedNote[]>(() => id ? queryClient.getQueryData<RelatedNote[]>(qk.entityNotes(id)) ?? [] : []);
   const [relatedEntities, setRelatedEntities] = useState<EntityData[]>(() => id
@@ -382,278 +386,218 @@ export default function EntityDetail() {
     { value: "ACTIVITY", label: t("ent_type_activity") },
   ];
 
+  const todayIso = localToday();
+  const streak = isHabit ? currentStreak(entity.trackingDates, todayIso) : 0;
+  const summary = isHabit
+    ? [
+        { label: t("ent_total_tracked"), value: totalCompletions },
+        { label: t("ent_streak"), value: t("ent_days", { count: streak }) },
+        { label: t("ent_connected_notes"), value: relatedNotes.length },
+      ]
+    : [
+        { label: t("ent_connected_notes"), value: relatedNotes.length },
+        { label: t("ent_connections"), value: relatedEntities.length },
+        { label: t("ent_created"), value: formatLocalizedDate(entity.createdAt, language, { month: "short", day: "numeric" }) },
+      ];
+  const typeName = (type: string) => {
+    const key = `ent_type_${type.toLowerCase()}`;
+    return t(key) === key ? type.charAt(0) + type.slice(1).toLowerCase() : t(key);
+  };
+  const shownNotes = showAllNotes ? relatedNotes : relatedNotes.slice(0, 5);
+  const shownEntities = showAllEntities ? relatedEntities : relatedEntities.slice(0, 5);
+  const startEditTitle = () => { setEditingTitle(true); setNewTitle(entity.title); };
+  const startEditDescription = () => { setEditingDescription(true); setNewDescription(entity.description?.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH) || ""); };
+
+  const linksColumn = (
+    <>
+      <EntitySection title={t("ent_connected_notes")} aside={relatedNotes.length}>
+        <div className="px-1">
+          {relatedNotes.length > 0 ? shownNotes.map((note) => (
+            <EntityLinkRow
+              key={note.id}
+              icon={<StickyNote className="h-4 w-4" />}
+              title={note.title || t("notes_untitled")}
+              meta={t("ent_updated", { date: formatLocalizedDate(note.updatedAt, language) })}
+              onClick={() => navigate(`/notes/${note.id}`)}
+            />
+          )) : <p className="py-3 text-sm text-muted-foreground">{t("ent_no_connected_notes")}</p>}
+        </div>
+        {relatedNotes.length > 5 && (
+          <Button variant="quiet" size="sm" className="rounded-full" onClick={() => setShowAllNotes((v) => !v)}>
+            {showAllNotes ? t("ent_show_less") : t("ent_show_all", { count: relatedNotes.length })}
+          </Button>
+        )}
+      </EntitySection>
+
+      <EntitySection title={t("ent_connected_entities")} aside={relatedEntities.length}>
+        <div className="px-1">
+          {relatedEntities.length > 0 ? shownEntities.map((ent) => (
+            <EntityLinkRow
+              key={ent.id}
+              icon={<EntityTypeIcon type={ent.type} className="h-4 w-4" />}
+              title={ent.title}
+              meta={typeName(ent.type)}
+              onClick={() => navigate(`/entities/${ent.id}`)}
+            />
+          )) : <p className="py-3 text-sm text-muted-foreground">{t("ent_no_connected_entities")}</p>}
+        </div>
+        {relatedEntities.length > 5 && (
+          <Button variant="quiet" size="sm" className="rounded-full" onClick={() => setShowAllEntities((v) => !v)}>
+            {showAllEntities ? t("ent_show_less") : t("ent_show_all", { count: relatedEntities.length })}
+          </Button>
+        )}
+      </EntitySection>
+    </>
+  );
+
   return (
     <AppLayout>
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
-        <Button
-          variant="quiet"
-          size="sm"
-          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/entities"))}
-          className="mb-5 h-auto rounded-full px-3 py-1.5"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> {t("ent_back")}
-        </Button>
+      <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        {/* Top bar */}
+        <div className="mb-6 flex items-center justify-between gap-2">
+          <Button
+            variant="quiet"
+            size="sm"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/entities"))}
+            className="h-auto rounded-full px-3 py-1.5"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> {t("ent_back")}
+          </Button>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="iconSm" className="rounded-full text-muted-foreground" aria-label={t("ent_more_actions")}>
+                <EllipsisHorizontal className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onSelect={startEditTitle}><Edit className="mr-2 h-4 w-4" /> {t("ent_edit_name")}</DropdownMenuItem>
+              <DropdownMenuItem onSelect={startEditDescription}><Edit className="mr-2 h-4 w-4" /> {t("ent_edit_description")}</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" /> {t("common_delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-        <header className="mb-7 border-b border-border/10 pb-6 sm:pb-8">
-          <div>
-            <div className="flex items-start gap-4">
-              <div className="mt-1 grid h-10 w-10 shrink-0 place-items-center text-muted-foreground sm:h-12 sm:w-12">
-                <EntityTypeIcon type={entity.type} className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div className="min-w-0 flex-1 pt-0.5">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">{typeLabel}</span>
-                  <InsightSignalBadge kind="entity" id={entity.id} />
-                </div>
-                {editingTitle ? (
-                  <div className="flex flex-wrap gap-2">
-                    <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder={t("ent_new_name_placeholder")} className="min-w-0 flex-1" />
-                    <Button size="sm" onClick={handleSaveTitle}>{t("ent_save")}</Button>
-                    <Button size="sm" variant="outline" onClick={() => { setEditingTitle(false); setNewTitle(entity.title); }}>{t("ent_cancel")}</Button>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <h1 className="min-w-0 flex-1 break-words font-serif text-3xl leading-tight tracking-tight text-foreground sm:text-5xl">{entity.title}</h1>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <Button variant="ghost" size="iconSm" onClick={() => { setEditingTitle(true); setNewTitle(entity.title); }} className="rounded-full text-muted-foreground hover:text-foreground" aria-label={t("ent_edit_name")}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="destructive" size="iconSm" onClick={() => setDeleteDialogOpen(true)} className="rounded-full" aria-label={t("common_delete")} title={t("common_delete")}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
+        {/* Header */}
+        <header className="mb-6">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/10 bg-secondary/50 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <EntityTypeIcon type={entity.type} className="h-3.5 w-3.5" /> {typeLabel}
+            </span>
+            <InsightSignalBadge kind="entity" id={entity.id} />
+          </div>
+
+          {editingTitle ? (
+            <div className="flex flex-wrap gap-2">
+              <Input autoFocus value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void handleSaveTitle(); }} placeholder={t("ent_new_name_placeholder")} className="min-w-0 flex-1" />
+              <Button size="sm" onClick={handleSaveTitle}>{t("ent_save")}</Button>
+              <Button size="sm" variant="outline" onClick={() => { setEditingTitle(false); setNewTitle(entity.title); }}>{t("ent_cancel")}</Button>
+            </div>
+          ) : (
+            <h1 onClick={startEditTitle} className="cursor-text break-words font-serif text-3xl leading-tight tracking-tight text-foreground sm:text-5xl">
+              {entity.title}
+            </h1>
+          )}
+
+          {editingDescription ? (
+            <div className="mt-4 flex flex-col gap-2">
+              <Textarea autoFocus value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder={t("ent_add_description_placeholder")} className="text-sm" rows={3} maxLength={MAX_ENTITY_DESCRIPTION_LENGTH} />
+              <p className="text-right text-[10px] text-muted-foreground">{t("ent_description_character_count", { count: newDescription.length })}</p>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveDescription}>{t("ent_save")}</Button>
+                <Button size="sm" variant="outline" onClick={() => setEditingDescription(false)}>{t("ent_cancel")}</Button>
               </div>
             </div>
+          ) : entity.description ? (
+            <div className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              <ExpandableEntityDescription key={entity.id} description={entity.description} />
+            </div>
+          ) : (
+            <button type="button" onClick={startEditDescription} className="mt-3 text-sm italic text-muted-foreground/60 hover:text-muted-foreground">
+              {t("ent_add_description_placeholder")}
+            </button>
+          )}
 
-            {editingDescription ? (
-              <div className="mt-5 flex flex-col gap-2">
-                <Textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder={t("ent_add_description_placeholder")}
-                  className="text-sm"
-                  rows={3}
-                  maxLength={MAX_ENTITY_DESCRIPTION_LENGTH}
-                />
-                <p className="text-right text-[10px] text-muted-foreground">
-                  {t("ent_description_character_count", { count: newDescription.length })}
-                </p>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleSaveDescription}>{t("ent_save")}</Button>
-                  <Button size="sm" variant="outline" onClick={() => { setEditingDescription(false); setNewDescription(entity.description?.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH) || ""); }}>{t("ent_cancel")}</Button>
-                </div>
-              </div>
-            ) : (
-              <div className="group mt-4 flex items-start gap-2 sm:ml-[4.5rem]">
-                <div className="min-w-0 flex-1 text-sm leading-6 text-muted-foreground">
-                  {entity.description ? (
-                    <ExpandableEntityDescription key={entity.id} description={entity.description} />
-                  ) : (
-                    <p className="italic text-muted-foreground/60">{t("ent_no_description")}</p>
-                  )}
-                </div>
-                <Button variant="ghost" size="iconSm" onClick={() => { setEditingDescription(true); setNewDescription(entity.description?.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH) || ""); }} className="shrink-0 rounded-full text-muted-foreground hover:text-foreground" aria-label={t("ent_edit_description")}>
-                  <Edit className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )}
+          <div className="mt-6"><EntityStatRow stats={summary} /></div>
+        </header>
 
-            {!isProject && (
-              <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 sm:ml-[4.5rem] sm:gap-5">
-              {isHabit ? (
-                <>
-                  <DetailStat label={t("ent_total_tracked")} value={totalCompletions} icon={Calendar} />
-                  <DetailStat label={t("ent_connected_notes")} value={relatedNotes.length} icon={StickyNote} />
-                </>
-              ) : (
-                <>
-                  <DetailStat label={t("ent_connected_notes")} value={relatedNotes.length} icon={StickyNote} />
-                  <DetailStat label={t("ent_created")} value={formatLocalizedDate(entity.createdAt, language)} icon={Calendar} />
-                </>
-              )}
-              </div>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
+          <div className="min-w-0 space-y-8">
+            {isProject && (
+              <EntitySection title={t("ent_section_time")}>
+                <div className="space-y-4">
+                  <TimerWidget
+                    entityId={id!}
+                    entityName={entity.title}
+                    showSectionBorders={false}
+                    onTimerStart={() => toast({ title: t("ent_timer_started") })}
+                    onTimerStop={(duration) => toast({ title: t("ent_timer_stopped", { duration: formatSeconds(duration) }) })}
+                  />
+                  <TimeHeatmap entityId={id!} />
+                </div>
+              </EntitySection>
             )}
 
             {isHabit && (
-              <div className="mt-5 flex flex-col gap-2 border-t border-border/10 pt-4 sm:ml-[4.5rem] sm:flex-row sm:items-center">
-                <Input type="date" lang={getDateLocale(language)} value={trackDate} max={localToday()} onChange={(e) => setTrackDate(e.target.value)} className="h-10 w-full sm:w-auto" aria-label={t("tm_date")} />
-                <Button size="sm" className="h-10 w-full rounded-xl sm:w-auto" onClick={() => handleTrack(trackDate)} disabled={!trackDate || trackDate > localToday() || trackingDateBusy}>
-                  {t("ent_save")}
-                </Button>
-                {trackedToday && <Badge variant="meta" className="self-center rounded-full px-3 py-1">{t("tm_done_today")}</Badge>}
-              </div>
+              <EntitySection title={t("ent_section_tracking")}>
+                <div className="space-y-4 rounded-2xl border border-border/10 bg-secondary/30 p-4">
+                  <Button
+                    className="h-11 w-full rounded-xl"
+                    variant={trackedToday ? "outline" : "default"}
+                    disabled={trackedToday || trackingDateBusy}
+                    onClick={() => handleTrack(todayIso)}
+                  >
+                    {trackedToday ? <><Check className="h-4 w-4" /> {t("tm_done_today")}</> : t("ent_mark_today")}
+                  </Button>
+                  <ActivityAnalyticsCalendar
+                    trackingDates={entity.trackingDates}
+                    isUpdating={trackingDateBusy}
+                    onToggleDate={(date, currentlyTracked) => {
+                      if (!trackingDateBusy) void handleToggleActivityDate(date, currentlyTracked);
+                    }}
+                  />
+                  <div className="flex flex-col gap-2 border-t border-border/10 pt-4 sm:flex-row sm:items-center">
+                    <span className="text-xs text-muted-foreground sm:mr-auto">{t("ent_log_other_date")}</span>
+                    <Input type="date" lang={getDateLocale(language)} value={trackDate} max={todayIso} onChange={(e) => setTrackDate(e.target.value)} className="h-9 w-full sm:w-auto" aria-label={t("tm_date")} />
+                    <Button size="sm" variant="outline" className="h-9 rounded-xl" onClick={() => handleTrack(trackDate)} disabled={!trackDate || trackDate > todayIso || trackingDateBusy}>
+                      {t("ent_save")}
+                    </Button>
+                  </div>
+                </div>
+              </EntitySection>
             )}
+
+            {!isProject && !isHabit && linksColumn}
           </div>
-        </header>
 
-        {/* Type-specific primary block */}
-        {isProject && (
-          <div className="mb-7 space-y-4">
-            <TimerWidget
-              entityId={id!}
-              entityName={entity.title}
-              showSectionBorders={false}
-              onTimerStart={() => toast({ title: t("ent_timer_started") })}
-              onTimerStop={(duration) => toast({ title: t("ent_timer_stopped", { duration: formatSeconds(duration) }) })}
-            />
-            <TimeHeatmap entityId={id!} />
-          </div>
-        )}
+          <aside className="min-w-0 space-y-8">
+            {(isProject || isHabit) && linksColumn}
 
-
-        {isHabit && (
-          <div className="mb-7">
-            <ActivityAnalyticsCalendar
-              trackingDates={entity.trackingDates}
-              isUpdating={trackingDateBusy}
-              onToggleDate={(date, currentlyTracked) => {
-                if (!trackingDateBusy) void handleToggleActivityDate(date, currentlyTracked);
-              }}
-            />
-          </div>
-        )}
-
-        {/* Accordion sections */}
-        <Accordion
-          type="multiple"
-          defaultValue={["metadata"]}
-          className="border-t border-border/10"
-        >
-          <AccordionItem value="metadata" className="border-b border-border/10">
-            <AccordionTrigger className="py-5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground hover:no-underline">
-              {t("ent_metadata")}
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pb-4"><WorkspaceAssign key={entity.id} kind="ENTITY" id={entity.id} value={entity.workspaceIds} /></div>
-              <div className="grid grid-cols-1 gap-3 pb-5 sm:grid-cols-3">
-                <Card variant="faint" className="rounded-xl border border-border/10 bg-background/40 p-4">
-                  <div className="label-caps text-muted-foreground mb-1.5 inline-flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3" /> {t("ent_created")}
-                  </div>
-                  <div className="text-sm text-foreground">{formatLocalizedDate(entity.createdAt, language)}</div>
-                </Card>
-                <Card variant="faint" className="rounded-xl border border-border/10 bg-background/40 p-4">
-                  <div className="label-caps text-muted-foreground mb-1.5 inline-flex items-center gap-1.5">
-                    <Network className="h-3 w-3" /> {t("ent_connections")}
-                  </div>
-                  <div className="text-sm text-foreground">{relatedEntities.length}</div>
-                </Card>
-                <Card variant="faint" className="rounded-xl border border-border/10 bg-background/40 p-4">
-                  <div className="label-caps text-muted-foreground mb-1.5 inline-flex items-center gap-1.5">
-                    <Tag className="h-3 w-3" /> {t("ent_type")}
-                  </div>
-                  {editingType ? (
-                    <div className="flex flex-col gap-2">
-                      <select
-                        value={newType}
-                        onChange={(e) => setNewType(e.target.value)}
-                        className="h-9 rounded-xl border border-border/10 bg-background px-2 text-sm text-foreground"
-                      >
-                        {entityTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </select>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={handleSaveType}>{t("ent_save")}</Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingType(false);
-                            setNewType(entity.type);
-                          }}
-                        >
-                          {t("ent_cancel")}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm text-foreground">{typeLabel}</div>
-                      <Button
-                        variant="ghost"
-                        size="iconSm"
-                        onClick={() => {
-                          setEditingType(true);
-                          setNewType(entity.type);
-                        }}
-                        aria-label={t("ent_edit_type") ?? "Edit type"}
-                      >
-                        <Edit className="h-3.5 w-3.5 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  )}
-                </Card>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="notes" className="border-b border-border/10">
-            <AccordionTrigger className="py-5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground hover:no-underline">
-              <span className="flex w-full items-center justify-between gap-3">
-                <span>{t("ent_connected_notes")}</span>
-                <span className="text-muted-foreground/60 normal-case tracking-normal">({relatedNotes.length})</span>
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-1 pb-5">
-                {relatedNotes.length > 0 ? (
-                  relatedNotes.map((note) => (
-                    <Button
-                      key={note.id}
-                      variant="ghost"
-                      onClick={() => navigate(`/notes/${note.id}`)}
-                      className="flex h-auto w-full items-start justify-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left normal-case tracking-normal font-normal hover:bg-foreground/[0.035]"
+            <EntitySection title={t("ent_section_details")}>
+              <div className="overflow-hidden rounded-2xl border border-border/10 bg-secondary/30">
+                <EntityDetailRow label={t("ent_type")}>
+                  <div className="flex items-center gap-2 sm:justify-end">
+                    <select
+                      value={editingType ? newType : entity.type}
+                      onChange={(e) => { setNewType(e.target.value); setEditingType(e.target.value !== entity.type); }}
+                      className="h-9 rounded-xl border border-border/10 bg-background px-2 text-sm text-foreground"
+                      aria-label={t("ent_type")}
                     >
-                      <StickyNote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-foreground">{note.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("ent_updated", { date: formatLocalizedDate(note.updatedAt, language) })}
-                        </p>
-                      </div>
-                    </Button>
-                  ))
-                ) : (
-                  <p className="px-3 py-4 text-sm text-muted-foreground">{t("ent_no_connected_notes")}</p>
-                )}
+                      {entityTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                    {editingType && <Button size="sm" onClick={handleSaveType}>{t("ent_save")}</Button>}
+                  </div>
+                </EntityDetailRow>
+                <EntityDetailRow label={t("ent_created")}>{formatLocalizedDate(entity.createdAt, language)}</EntityDetailRow>
+                <div className="px-4 py-3.5">
+                  <WorkspaceAssign key={entity.id} kind="ENTITY" id={entity.id} value={entity.workspaceIds} />
+                </div>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="entities" className="border-b border-border/10">
-            <AccordionTrigger className="py-5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground hover:no-underline">
-              <span className="flex w-full items-center justify-between gap-3">
-                <span>{t("ent_connected_entities")}</span>
-                <span className="text-muted-foreground/60 normal-case tracking-normal">({relatedEntities.length})</span>
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-1 pb-5">
-                {relatedEntities.length > 0 ? (
-                  relatedEntities.map((ent) => (
-                    <Button
-                      key={ent.id}
-                      variant="ghost"
-                      onClick={() => navigate(`/entities/${ent.id}`)}
-                      className="flex h-auto w-full items-start justify-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left normal-case tracking-normal font-normal hover:bg-foreground/[0.035]"
-                    >
-                      <Network className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-foreground">{ent.title}</p>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">{ent.type}</p>
-                      </div>
-                    </Button>
-                  ))
-                ) : (
-                  <p className="px-3 py-4 text-sm text-muted-foreground">{t("ent_no_connected_entities")}</p>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+            </EntitySection>
+          </aside>
+        </div>
       </div>
       <ConfirmDialog
         open={deleteDialogOpen}
