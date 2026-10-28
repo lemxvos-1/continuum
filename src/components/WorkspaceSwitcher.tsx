@@ -55,7 +55,8 @@ export function openCreateWorkspace() {
   window.dispatchEvent(new Event("continuum:create-workspace"));
 }
 
-/** Workspace picker expanded inline inside the mobile More menu. */
+/** Workspace picker inside the mobile More menu: tapping the header opens a panel
+ *  that overlays the whole menu, with its own scrollable list. */
 export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expanded?: boolean; onExpandedChange?: (v: boolean) => void }) {
   const s = useWorkspaceText();
   const active = useActiveWorkspace();
@@ -71,24 +72,36 @@ export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expan
       <DropdownMenuItem
         onSelect={(e) => { e.preventDefault(); onExpandedChange?.(!expanded); }}
         className="gap-2"
-        aria-expanded={expanded}
       >
         {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4" />}
         <span className="flex-1 truncate">{cur.name}</span>
         <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", expanded && "rotate-90")} />
       </DropdownMenuItem>
       {expanded && (
-        <div className="ml-5 max-h-[35dvh] overflow-y-auto overscroll-contain border-l border-border/10 pl-1">
-          {items.map((i) => (
-            <DropdownMenuItem key={i.id ?? "all"} onSelect={() => setActiveWorkspace(i.id)} className="gap-2">
-              {i.color ? <Dot color={i.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4 text-muted-foreground" />}
-              <span className="flex-1 truncate">{i.name}</span>
-              {active === i.id && <Check className="h-4 w-4" />}
+        <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-[inherit] bg-popover">
+          <button
+            type="button"
+            onClick={() => onExpandedChange?.(false)}
+            className="flex shrink-0 items-center gap-2 border-b border-border/10 px-3 py-2.5 text-left text-sm"
+          >
+            <ArchiveBox className="h-4 w-4 text-muted-foreground" />
+            <span className="flex-1 truncate">{cur.name}</span>
+            <span className="text-muted-foreground">‹</span>
+          </button>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
+            {items.map((i) => (
+              <DropdownMenuItem key={i.id ?? "all"} onSelect={() => setActiveWorkspace(i.id)} className="gap-2">
+                {i.color ? <Dot color={i.color} className="mx-[3px]" /> : <ArchiveBox className="h-4 w-4 text-muted-foreground" />}
+                <span className="flex-1 truncate">{i.name}</span>
+                {active === i.id && <Check className="h-4 w-4" />}
+              </DropdownMenuItem>
+            ))}
+          </div>
+          <div className="shrink-0 border-t border-border/10 p-1">
+            <DropdownMenuItem onSelect={() => openCreateWorkspace()} className="gap-2">
+              <Plus className="h-4 w-4" /> {s.create}
             </DropdownMenuItem>
-          ))}
-          <DropdownMenuItem onSelect={() => openCreateWorkspace()} className="gap-2">
-            <Plus className="h-4 w-4" /> {s.create}
-          </DropdownMenuItem>
+          </div>
         </div>
       )}
     </>

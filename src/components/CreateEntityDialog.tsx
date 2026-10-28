@@ -95,8 +95,6 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
       onOpenChange={onOpenChange}
       title={t("ent_new_type", { type: selected.label })}
       description={selected.hint}
-      className="max-h-[80dvh] overflow-y-auto"
-      bodyClassName="flex-none overflow-visible"
     >
       <div className="space-y-4 px-5 pb-6">
         <div className="space-y-1.5">
@@ -120,7 +118,7 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("ent_type")}</Label>
             <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="h-11 justify-start bg-foreground/[0.03] text-left border-border/10 [&_[data-radix-select-icon]]:ml-auto">
+              <SelectTrigger className="h-11 justify-between border-border/10 bg-foreground/[0.03] text-left">
                 <SelectValue className="flex-1 text-left" />
               </SelectTrigger>
               <SelectContent>

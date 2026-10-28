@@ -292,9 +292,10 @@ export default function EntityDetail() {
   };
 
   const handleSaveDescription = async (value: string) => {
-    const description = value.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH).trim();
     setEditingDescription(false);
-    if (!id || description === (entity?.description ?? "")) return;
+    if (!id || value === (entity?.description ?? "")) return;
+    const description = value.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH).trim();
+    if (description === (entity?.description ?? "")) return;
     try {
       const { data } = await entitiesApi.update(id, { description });
       setEntity(data);
@@ -368,7 +369,7 @@ export default function EntityDetail() {
   const shownNotes = showAllNotes ? relatedNotes : relatedNotes.slice(0, 2);
   const shownEntities = showAllEntities ? relatedEntities : relatedEntities.slice(0, 2);
   const startEditTitle = () => { setEditingTitle(true); setNewTitle(entity.title); };
-  const startEditDescription = () => { setEditingDescription(true); setNewDescription(entity.description?.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH) || ""); };
+  const startEditDescription = () => { setEditingDescription(true); setNewDescription(entity.description || ""); };
 
   const linksColumn = (
     <>

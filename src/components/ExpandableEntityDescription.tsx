@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { MAX_ENTITY_DESCRIPTION_LENGTH } from "@/lib/entity-description";
+import { ChevronDown, ChevronUp } from "@/lib/heroicons";
 import { cn } from "@/lib/utils";
 
 interface ExpandableEntityDescriptionProps {
@@ -16,7 +16,7 @@ export function ExpandableEntityDescription({ description, className, onEdit }: 
   const paragraphRef = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
-  const visibleDescription = description.slice(0, MAX_ENTITY_DESCRIPTION_LENGTH);
+  const visibleDescription = description;
 
   useEffect(() => {
     setExpanded(false);
@@ -41,12 +41,12 @@ export function ExpandableEntityDescription({ description, className, onEdit }: 
   }, [visibleDescription, expanded]);
 
   return (
-    <div className="min-w-0">
+    <div className="flex min-w-0 items-start gap-1">
       <p
         id={paragraphId}
         ref={paragraphRef}
         className={cn(
-          "whitespace-pre-wrap break-words",
+          "min-w-0 flex-1 whitespace-pre-wrap break-words",
           onEdit && "cursor-text",
           !expanded && "line-clamp-2",
           className,
@@ -67,14 +67,16 @@ export function ExpandableEntityDescription({ description, className, onEdit }: 
       {overflows && (
         <Button
           type="button"
-          variant="link"
-          size="sm"
-          className="h-auto px-0 py-1 text-xs"
+          variant="quiet"
+          size="iconSm"
+          className="mt-[-3px] shrink-0 rounded-full"
+          aria-label={t(expanded ? "ent_show_less" : "ent_show_more")}
+          title={t(expanded ? "ent_show_less" : "ent_show_more")}
           aria-expanded={expanded}
           aria-controls={paragraphId}
           onClick={() => setExpanded((current) => !current)}
         >
-          {t(expanded ? "ent_show_less" : "ent_show_more")}
+          {expanded ? <ChevronUp /> : <ChevronDown />}
         </Button>
       )}
     </div>
