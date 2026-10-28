@@ -48,8 +48,9 @@ export function openCreateWorkspace() {
   window.dispatchEvent(new Event("continuum:create-workspace"));
 }
 
-/** Workspace picker rendered as a submenu inside another dropdown (mobile More menu). */
-export function WorkspaceSubmenu() {
+/** Workspace picker inside the mobile More menu: tapping the header opens a panel
+ *  that overlays the whole menu, with its own scrollable list. */
+export function WorkspaceSubmenu({ expanded = false, onExpandedChange }: { expanded?: boolean; onExpandedChange?: (v: boolean) => void }) {
   const s = useWorkspaceText();
   const active = useActiveWorkspace();
   const { data: workspaces = [] } = useWorkspaces();
@@ -60,25 +61,42 @@ export function WorkspaceSubmenu() {
   ];
   const cur = items.find((i) => i.id === active) ?? items[0];
   return (
-    <DropdownMenuSub>
-      <DropdownMenuSubTrigger className="gap-2">
+    <>
+      <DropdownMenuItem
+        onSelect={(e) => { e.preventDefault(); onExpandedChange?.(!expanded); }}
+        className="gap-2"
+      >
         {cur.color ? <Dot color={cur.color} className="mx-[3px]" /> : <Squares2x2 className="h-4 w-4" />}
         <span className="flex-1 truncate">{s.title}: {cur.name}</span>
-      </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="w-52 bg-muted/90 backdrop-blur-[6px]">
-        {items.map((i) => (
-          <DropdownMenuItem key={i.id ?? "all"} onSelect={() => setActiveWorkspace(i.id)} className="gap-2">
-            {i.color ? <Dot color={i.color} className="mx-[3px]" /> : <Squares2x2 className="h-4 w-4 text-muted-foreground" />}
-            <span className="flex-1 truncate">{i.name}</span>
-            {active === i.id && <Check className="h-4 w-4" />}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => openCreateWorkspace()} className="gap-2">
-          <Plus className="h-4 w-4" /> {s.create}
-        </DropdownMenuItem>
-      </DropdownMenuSubContent>
-    </DropdownMenuSub>
+      </DropdownMenuItem>
+      {expanded && (
+        <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-[inherit] bg-popover">
+          <button
+            type="button"
+            onClick={() => onExpandedChange?.(false)}
+            className="flex shrink-0 items-center gap-2 border-b border-border/10 px-3 py-2.5 text-left text-sm"
+          >
+            <Squares2x2 className="h-4 w-4 text-muted-foreground" />
+            <span className="flex-1 truncate">{s.title}: {cur.name}</span>
+            <span className="text-muted-foreground">‹</span>
+          </button>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
+            {items.map((i) => (
+              <DropdownMenuItem key={i.id ?? "all"} onSelect={() => setActiveWorkspace(i.id)} className="gap-2">
+                {i.color ? <Dot color={i.color} className="mx-[3px]" /> : <Squares2x2 className="h-4 w-4 text-muted-foreground" />}
+                <span className="flex-1 truncate">{i.name}</span>
+                {active === i.id && <Check className="h-4 w-4" />}
+              </DropdownMenuItem>
+            ))}
+          </div>
+          <div className="shrink-0 border-t border-border/10 p-1">
+            <DropdownMenuItem onSelect={() => openCreateWorkspace()} className="gap-2">
+              <Plus className="h-4 w-4" /> {s.create}
+            </DropdownMenuItem>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

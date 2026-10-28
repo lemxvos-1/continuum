@@ -128,7 +128,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="end" className="mb-2 w-56 overflow-hidden bg-muted/60 backdrop-blur-[6px]">
+              <DropdownMenuContent side="top" align="end" className="relative mb-2 w-56 overflow-hidden rounded-xl bg-muted/60 backdrop-blur-[6px]">
                 <WorkspaceSubmenu
                   expanded={workspaceMenuExpanded}
                   onExpandedChange={setWorkspaceMenuExpanded}

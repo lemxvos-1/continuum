@@ -150,6 +150,8 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
+    "prosemirror-model": "1.25.12",
+    "prosemirror-view": "1.42.8",
     "@tiptap/core": "3.29.2",
     "@tiptap/extension-blockquote": "3.29.2",
     "@tiptap/extension-bold": "3.29.2",
