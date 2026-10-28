@@ -96,6 +96,7 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
       title={t("ent_new_type", { type: selected.label })}
       description={selected.hint}
       className="max-h-[96dvh]"
+      bodyClassName="overflow-y-hidden"
     >
       <div className="space-y-4 px-5 pb-6">
         <div className="space-y-1.5">
