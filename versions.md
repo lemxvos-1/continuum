@@ -4,7 +4,14 @@ Every notable change to Continuum, from the first release to the latest version.
 
 ---
 
-v1.3.4  Oct XX, 2026
+v1.3.5 — XXX XX, 2026
+
+- UI: Enchance entity details screen, Enchance entity creation button.
+- Workspaces: Add workspaces (beta).
+
+---
+
+v1.3.4 — Oct 21, 2026
 
 - Import: Preserved source file modification dates and automatically imported and linked supported Vault files referenced by Markdown notes.
 - Settings: Consolidated data export into the full ZIP backup download.
@@ -20,7 +27,6 @@ v1.3.4  Oct XX, 2026
 
 v1.3.3 — Oct 13, 2026
 
-- Prefetch: Add prefetch progress line.
 - UI: Padronize /notes, /entities UI in desktop to look like mobile.
 - Notes: Filter by type now uses drawer.
 - Billing: Enabled Stripe Adaptive Pricing for embedded subscription checkout.
