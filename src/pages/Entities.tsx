@@ -405,7 +405,7 @@ export default function Entities() {
                         setSelectedIds((prev) => new Set(prev).add(entity.id));
                       }}
                       onOpen={() =>
-                        selectMode ? toggleSelect(entity.id) : navigate(`/entities/${entity.id}`)
+                        selectMode ? toggleSelect(entity.id) : window.setTimeout(() => navigate(`/entities/${entity.id}`), 100)
                       }
                     >
                       <ListRowContent
