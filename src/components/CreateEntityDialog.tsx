@@ -33,7 +33,7 @@ interface Props {
   onCreationFailed?: (entityId: string) => void;
 }
 
-export function CreateEntityDrawer({ open, onOpenChange, defaultType = "TOPIC", lockType = false, onCreated, onCreationFailed }: Props) {
+export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", lockType = false, onCreated, onCreationFailed }: Props) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState(defaultType);
   const [description, setDescription] = useState("");

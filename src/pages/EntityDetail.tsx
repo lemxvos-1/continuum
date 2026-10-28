@@ -19,7 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EntitySection, EntityStatRow, EntityLinkRow, EntityDetailRow, currentStreak } from "@/components/entity/EntityParts";
+import { EntitySection, EntityLinkRow } from "@/components/entity/EntityParts";
 import { InsightSignalBadge } from "@/components/InsightSignal";
 import { ExpandableEntityDescription } from "@/components/ExpandableEntityDescription";
 
@@ -29,14 +29,16 @@ import { EntityTypeIcon } from "@/components/ui/entity-type-icon";
 import { TimerWidget } from "@/components/TimerWidget";
 import { TimeHeatmap } from "@/components/TimeHeatmap";
 import { ProjectDayTimeEntries } from "@/components/ProjectDayTimeEntries";
-import type { HeatmapData, EntityStats } from "@/types";
+import type { HeatmapData } from "@/types";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { usePlanGate } from "@/hooks/usePlanGate";
 import { queryClient } from "@/lib/query-client";
 import { qk, STALE } from "@/lib/queries";
 import { WorkspaceAssign } from "@/components/WorkspaceSwitcher";
+import { useWorkspaceText } from "@/lib/workspace-text";
 import { MAX_ENTITY_DESCRIPTION_LENGTH } from "@/lib/entity-description";
 import { formatLocalizedDate, getDateLocale } from "@/lib/date-format";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 interface EntityData { id: string; title: string; type: string; description?: string; trackingDates?: string[]; createdAt: string; workspaceIds?: string[]; }
@@ -60,11 +62,11 @@ export default function EntityDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const workspaceText = useWorkspaceText();
   const isRestoring = useIsRestoring();
   const { applyUsageDelta, refresh: refreshUsage } = usePlanGate();
   const [entity, setEntity] = useState<EntityData | null>(() => id ? queryClient.getQueryData<EntityData>(qk.entity(id)) ?? null : null);
   const [heatmap, setHeatmap] = useState<HeatmapData>({});
-  const [stats, setStats] = useState<EntityStats | null>(() => id ? queryClient.getQueryData<EntityStats>(qk.entityStats(id)) ?? null : null);
   const [loading, setLoading] = useState(() => !id || !queryClient.getQueryData(qk.entity(id)));
   const [editingTitle, setEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -105,17 +107,13 @@ export default function EntityDetail() {
     setRelatedEntities((cachedConnections ?? []).filter((item) => item.id !== id));
     if (cachedEntity?.type === "ACTIVITY") {
       const cachedHeatmap = queryClient.getQueryData<unknown>(qk.entityHeatmap(id));
-      const cachedStats = queryClient.getQueryData<EntityStats>(qk.entityStats(id));
       if (cachedHeatmap !== undefined) {
         setHeatmap(normalizeHeatmapData(cachedHeatmap));
       } else {
         setHeatmap(buildHeatmapFromTrackingDates(cachedEntity.trackingDates || []));
       }
-      if (cachedStats) setStats(cachedStats);
-      else setStats(null);
     } else {
       setHeatmap({});
-      setStats(null);
     }
 
     const loadEntity = async () => {
@@ -153,14 +151,11 @@ export default function EntityDetail() {
           }
         };
 
-        const [notesData, connectionsData, heatmapData, statsData] = await Promise.all([
+        const [notesData, connectionsData, heatmapData] = await Promise.all([
           fetchDetail(qk.entityNotes(id), () => entitiesApi.getNotes(id).then((response) => response.data), "connected notes"),
           fetchDetail(qk.entityConnections(id), () => entitiesApi.getConnections(id).then((response) => response.data), "connections"),
           data.type === "ACTIVITY"
             ? fetchDetail(qk.entityHeatmap(id), () => entitiesApi.heatmap(id).then((response) => response.data), "heatmap")
-            : Promise.resolve(undefined),
-          data.type === "ACTIVITY"
-            ? fetchDetail(qk.entityStats(id), () => entitiesApi.stats(id).then((response) => response.data as EntityStats), "statistics")
             : Promise.resolve(undefined),
         ]);
 
@@ -176,17 +171,8 @@ export default function EntityDetail() {
           const apiHeatmap = normalizeHeatmapData(heatmapData);
           const trackingHeatmap = buildHeatmapFromTrackingDates(data.trackingDates || []);
           setHeatmap(Object.keys(apiHeatmap).length > 0 ? apiHeatmap : trackingHeatmap);
-          if (statsData) {
-            setStats({
-              ...statsData,
-              totalCompletions: Array.isArray(data.trackingDates)
-                ? data.trackingDates.length
-                : statsData.totalCompletions,
-            });
-          }
         } else {
           setHeatmap({});
-          setStats(null);
         }
       } catch {
         if (!cancelled) {
@@ -259,7 +245,6 @@ export default function EntityDetail() {
 
     setEntity((current) => updateTrackingDates(current ?? undefined) ?? null);
     setHeatmap(buildHeatmapFromTrackingDates(nextDates));
-    setStats((current) => current ? { ...current, totalCompletions: nextDates.length } : current);
     queryClient.setQueryData<EntityData>(qk.entity(id), updateTrackingDates);
     queryClient.setQueryData<EntityData[]>(qk.entities(), (current) =>
       current?.map((item) => item.id === id ? { ...item, trackingDates: nextDates } : item)
@@ -272,9 +257,6 @@ export default function EntityDetail() {
       const savedEntity = response.data as EntityData;
       setEntity(savedEntity);
       setHeatmap(buildHeatmapFromTrackingDates(savedEntity.trackingDates ?? []));
-      setStats((current) => current
-        ? { ...current, totalCompletions: savedEntity.trackingDates?.length ?? 0 }
-        : current);
       queryClient.setQueryData(qk.entity(id), savedEntity);
       queryClient.setQueryData<EntityData[]>(qk.entities(), (current) =>
         current?.map((item) => item.id === id ? { ...item, trackingDates: savedEntity.trackingDates } : item)
@@ -284,7 +266,6 @@ export default function EntityDetail() {
     } catch {
       setEntity((current) => current ? { ...current, trackingDates: previousDates } : current);
       setHeatmap(buildHeatmapFromTrackingDates(previousDates));
-      setStats((current) => current ? { ...current, totalCompletions: previousDates.length } : current);
       queryClient.setQueryData<EntityData>(qk.entity(id), (current) =>
         current ? { ...current, trackingDates: previousDates } : current
       );
@@ -375,9 +356,6 @@ export default function EntityDetail() {
   const isProject = entity.type === "PROJECT";
   const today = new Date().toISOString().split("T")[0];
   const trackedToday = entity.trackingDates?.some((date) => date.startsWith(today));
-  const totalCompletions = entity.trackingDates?.length ?? stats?.totalCompletions ?? 0;
-
-
   const typeLabelKey = `ent_type_${entity.type.toLowerCase()}`;
   const typeLabel = t(typeLabelKey) === typeLabelKey ? entity.type.charAt(0) + entity.type.slice(1).toLowerCase() : t(typeLabelKey);
   const entityTypeOptions = [
@@ -388,19 +366,6 @@ export default function EntityDetail() {
     { value: "ACTIVITY", label: t("ent_type_activity") },
   ];
 
-  const todayIso = localToday();
-  const streak = isHabit ? currentStreak(entity.trackingDates, todayIso) : 0;
-  const summary = isHabit
-    ? [
-        { label: t("ent_total_tracked"), value: totalCompletions },
-        { label: t("ent_streak"), value: t("ent_days", { count: streak }) },
-        { label: t("ent_connected_notes"), value: relatedNotes.length },
-      ]
-    : [
-        { label: t("ent_connected_notes"), value: relatedNotes.length },
-        { label: t("ent_connections"), value: relatedEntities.length },
-        { label: t("ent_created"), value: formatLocalizedDate(entity.createdAt, language, { month: "short", day: "numeric" }) },
-      ];
   const typeName = (type: string) => {
     const key = `ent_type_${type.toLowerCase()}`;
     return t(key) === key ? type.charAt(0) + type.slice(1).toLowerCase() : t(key);
@@ -524,7 +489,6 @@ export default function EntityDetail() {
             </button>
           )}
 
-          <div className="mt-6"><EntityStatRow stats={summary} /></div>
         </header>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
@@ -580,25 +544,47 @@ export default function EntityDetail() {
             {(isProject || isHabit) && linksColumn}
 
             <EntitySection title={t("ent_section_details")}>
-              <div className="overflow-hidden rounded-2xl border border-border/10 bg-secondary/30">
-                <EntityDetailRow label={t("ent_type")}>
-                  <div className="flex items-center gap-2 sm:justify-end">
-                    <select
+              <div className="divide-y divide-border/10">
+                <div className="flex min-h-16 items-center gap-4 py-3">
+                  <EntityTypeIcon type={editingType ? newType : entity.type} className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 text-sm font-medium text-foreground/80">{t("ent_type")}</span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Select
                       value={editingType ? newType : entity.type}
-                      onChange={(e) => { setNewType(e.target.value); setEditingType(e.target.value !== entity.type); }}
-                      className="h-9 rounded-xl border border-border/10 bg-background px-2 text-sm text-foreground"
-                      aria-label={t("ent_type")}
+                      onValueChange={(value) => { setNewType(value); setEditingType(value !== entity.type); }}
                     >
-                      {entityTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
+                      <SelectTrigger aria-label={t("ent_type")} className="h-8 w-[140px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {entityTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value} className="text-xs">
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {editingType && <Button size="sm" onClick={handleSaveType}>{t("ent_save")}</Button>}
                   </div>
-                </EntityDetailRow>
-                <EntityDetailRow label={t("ent_created")}>{formatLocalizedDate(entity.createdAt, language)}</EntityDetailRow>
-                <div className="px-4 py-3.5">
-                  <WorkspaceAssign key={entity.id} kind="ENTITY" id={entity.id} value={entity.workspaceIds} />
+                </div>
+                <div className="flex min-h-16 items-center gap-4 py-3">
+                  <Calendar className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 text-sm font-medium text-foreground/80">{t("ent_created")}</span>
+                  <span className="text-right text-sm text-muted-foreground">
+                    {formatLocalizedDate(entity.createdAt, language)}
+                  </span>
                 </div>
               </div>
+            </EntitySection>
+
+            <EntitySection title={workspaceText.title}>
+              <WorkspaceAssign
+                key={entity.id}
+                kind="ENTITY"
+                id={entity.id}
+                value={entity.workspaceIds}
+                presentation="drawer"
+              />
             </EntitySection>
           </aside>
         </div>

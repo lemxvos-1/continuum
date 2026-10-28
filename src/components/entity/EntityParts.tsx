@@ -45,16 +45,6 @@ export function EntityLinkRow({ icon, title, meta, onClick }: { icon: ReactNode;
   );
 }
 
-/** Settings-style list row with a label on the left and content on the right. */
-export function EntityDetailRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2 border-b border-border/10 px-4 py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="min-w-0 text-sm text-foreground sm:text-right">{children}</div>
-    </div>
-  );
-}
-
 /** Consecutive tracked days ending today (or yesterday, if today isn't tracked yet). */
 export function currentStreak(dates: string[] | undefined, today: string): number {
   const set = new Set((dates ?? []).map((d) => d.slice(0, 10)));

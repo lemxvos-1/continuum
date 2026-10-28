@@ -11,7 +11,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreateEntityDrawer } from "@/components/CreateEntityDrawer";
+import { CreateEntityDialog } from "@/components/CreateEntityDialog";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -491,7 +491,7 @@ export default function Entities() {
       />
 
 
-      <CreateEntityDrawer
+      <CreateEntityDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         defaultType={(selectedType as EntityType) || "TOPIC"}

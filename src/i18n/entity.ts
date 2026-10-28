@@ -84,7 +84,7 @@ export const dict: Module = {
     ent_unlinked: "Unlinked",
     ent_untitled: "Untitled",
     ent_nothing_references: "Nothing references this note yet.",
-    // CreateEntityDrawer
+    // CreateEntityDialog
     ent_hint_project: "Track time and progress",
     ent_hint_activity: "Daily habit or recurring task",
     ent_hint_topic: "Knowledge area or subject",

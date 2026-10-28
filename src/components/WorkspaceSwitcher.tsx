@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Plus, Trash2, Squares2x2 } from "@/lib/heroicons";
+import { Check, ChevronRight, Plus, Trash2, Squares2x2 } from "@/lib/heroicons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { workspacesApi, type Workspace } from "@/lib/api";
 import { setActiveWorkspace, useActiveWorkspace, WORKSPACE_COLORS } from "@/lib/workspace";
 import { useWorkspaceText } from "@/lib/workspace-text";
@@ -246,17 +253,20 @@ export function WorkspaceAssign({
   id,
   value,
   onChange,
+  presentation = "chips",
 }: {
   kind: "NOTE" | "ENTITY";
   id: string;
   value?: string[];
   onChange?: (ids: string[]) => void;
+  presentation?: "chips" | "drawer";
 }) {
   const s = useWorkspaceText();
   const { data: workspaces = [] } = useWorkspaces();
   const [ids, setIds] = useState<string[]>(value ?? []);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const qc = useQueryClient();
-  if (workspaces.length === 0) return null;
+  if (workspaces.length === 0 && presentation === "chips") return null;
   // No explicit workspace means the item lives in Main.
   const shown = ids.length === 0 ? [MAIN_WORKSPACE] : ids;
   const chips = [{ id: MAIN_WORKSPACE, name: s.main, color: "hsl(var(--muted-foreground))" } as Workspace, ...workspaces];
@@ -276,6 +286,51 @@ export function WorkspaceAssign({
       toast.error(s.error);
     }
   };
+
+  if (presentation === "drawer") {
+    const assignedNames = chips.filter((workspace) => shown.includes(workspace.id)).map((workspace) => workspace.name);
+    return (
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-12 w-full justify-start gap-4 rounded-xl px-2 text-left hover:bg-secondary/60"
+            aria-label={s.title}
+          >
+            <Squares2x2 className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
+              {assignedNames.join(", ")}
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-[85vh] gap-0">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="font-serif">{s.title}</DrawerTitle>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8">
+            {chips.map((workspace) => {
+              const selected = shown.includes(workspace.id);
+              return (
+                <button
+                  key={workspace.id}
+                  type="button"
+                  onClick={() => void toggle(workspace.id)}
+                  aria-pressed={selected}
+                  className="flex min-h-12 w-full items-center gap-3 border-b border-border/10 px-2 text-left text-sm transition-colors hover:bg-secondary/60"
+                >
+                  <Dot color={workspace.color} className={cn(!selected && "opacity-50")} />
+                  <span className="min-w-0 flex-1 truncate">{workspace.name}</span>
+                  {selected && <Check className="h-4 w-4 text-foreground" />}
+                </button>
+              );
+            })}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
