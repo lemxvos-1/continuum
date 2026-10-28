@@ -502,18 +502,16 @@ export default function EntityDetail() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
           <div className="min-w-0 space-y-8">
             {isProject && (
-              <EntitySection title={t("ent_section_time")}>
-                <div className="space-y-4">
-                  <TimerWidget
-                    entityId={id!}
-                    entityName={entity.title}
-                    showSectionBorders={false}
-                    onTimerStart={() => toast({ title: t("ent_timer_started") })}
-                    onTimerStop={(duration) => toast({ title: t("ent_timer_stopped", { duration: formatSeconds(duration) }) })}
-                  />
-                  <TimeHeatmap entityId={id!} />
-                </div>
-              </EntitySection>
+              <div className="space-y-4">
+                <TimerWidget
+                  entityId={id!}
+                  entityName={entity.title}
+                  showSectionBorders={false}
+                  onTimerStart={() => toast({ title: t("ent_timer_started") })}
+                  onTimerStop={(duration) => toast({ title: t("ent_timer_stopped", { duration: formatSeconds(duration) }) })}
+                />
+                <TimeHeatmap entityId={id!} />
+              </div>
             )}
 
             {isHabit && (
