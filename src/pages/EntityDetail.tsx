@@ -479,9 +479,14 @@ export default function EntityDetail() {
               <p className="text-right text-[10px] text-muted-foreground">{t("ent_description_character_count", { count: newDescription.length })}</p>
             </div>
           ) : entity.description ? (
-            <p className="mt-3 max-w-2xl whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+            <button
+              type="button"
+              onClick={startEditDescription}
+              className="mt-3 max-w-2xl cursor-text whitespace-pre-wrap break-words text-left text-sm leading-6 text-muted-foreground"
+              aria-label={t("ent_edit_description")}
+            >
               {entity.description}
-            </p>
+            </button>
           ) : (
             <button type="button" onClick={startEditDescription} className="mt-3 text-sm italic text-muted-foreground/60 hover:text-muted-foreground">
               {t("ent_add_description_placeholder")}
