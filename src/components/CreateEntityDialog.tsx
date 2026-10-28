@@ -139,13 +139,12 @@ export function CreateEntityDialog({ open, onOpenChange, defaultType = "TOPIC", 
         <div className="space-y-1.5">
           <Label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("ent_description_optional")}</Label>
           <Textarea
-            autoResize
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t("ent_a_short_note")}
             maxLength={MAX_ENTITY_DESCRIPTION_LENGTH}
-            className="max-h-[20dvh] overflow-y-auto border-border/10 bg-foreground/[0.03] focus-visible:ring-ring"
-            rows={1}
+            className="max-h-[20dvh] resize-none overflow-y-auto border-border/10 bg-foreground/[0.03] focus-visible:ring-ring"
+            rows={4}
           />
           <p className="text-right text-[10px] text-muted-foreground">
             {t("ent_description_character_count", { count: description.length })}
