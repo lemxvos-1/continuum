@@ -189,6 +189,7 @@ function PdfCard({ file, name, onDelete, onRename, onOpen }: {
 function OtherFileRow({ file, name, onDelete, onRename }: {
   file: VaultFile; name: string; onDelete: (f: VaultFile) => void; onRename: (f: VaultFile) => void;
 }) {
+  const { language } = useLanguage();
   return (
     <div className="group relative flex items-center justify-between py-4 border-b border-border/10 hover:bg-foreground/[0.03] transition-colors">
       <div className="flex items-center gap-3 min-w-0">
