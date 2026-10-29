@@ -53,6 +53,12 @@ public class InsightsService {
     // Thresholds
     private static final double HIGH_RELEVANCE_THRESHOLD = 40.0;
     private static final long FORGOTTEN_DAYS_THRESHOLD = 6;
+    // Adaptive window: young vaults get fast value, mature vaults need real distance.
+    private static final long FORGOTTEN_DAYS_YOUNG = 7;
+    private static final long FORGOTTEN_DAYS_MATURE = 21;
+    private static final int MATURE_VAULT_NOTES = 30;
+    // Only the top share of the vault may resurface at once.
+    private static final double FORGOTTEN_TOP_SHARE = 0.15;
     private static final double FORGOTTEN_MIN_SCORE = 3.0;
     private static final int DEFAULT_LIMIT = 10;
 
@@ -120,17 +126,26 @@ public class InsightsService {
     }
 
     public List<NoteInsightDTO> forgottenNotes(int limit) {
-        return computeAllNoteInsights().stream()
-                // Only consider stale notes (no recent real interaction).
-                .filter(n -> n.daysSinceLastInteraction() >= FORGOTTEN_DAYS_THRESHOLD)
+        List<NoteInsightDTO> all = computeAllNoteInsights();
+        long window = all.size() < MATURE_VAULT_NOTES ? FORGOTTEN_DAYS_YOUNG : FORGOTTEN_DAYS_MATURE;
+        int cap = Math.max(1, (int) Math.ceil(all.size() * FORGOTTEN_TOP_SHARE));
+        int max = Math.min(limit > 0 ? limit : DEFAULT_LIMIT, cap);
+        return all.stream()
+                .filter(n -> n.daysSinceLastInteraction() >= window)
+                .filter(InsightsService::hasSubstance)
                 .filter(InsightsService::qualifiesAsForgotten)
                 .sorted(Comparator.comparingDouble((NoteInsightDTO n) -> baseScoreForForgotten(n)).reversed())
-                .limit(limit > 0 ? limit : DEFAULT_LIMIT)
+                .limit(max)
                 .map(n -> new NoteInsightDTO(
-                        n.note(), n.score(), "Forgotten Gem",
+                        n.note(), n.score(), "Worth Revisiting",
                         n.mentionCount(), n.recentMentions(), n.hoursTracked(),
                         n.entityConnections(), n.uniqueDaysReferenced(), n.daysSinceLastInteraction()))
                 .collect(Collectors.toList());
+    }
+
+    /** Shallow notes (one tag, no history) never resurface. */
+    private static boolean hasSubstance(NoteInsightDTO n) {
+        return n.entityConnections() >= 2 || n.mentionCount() >= 2 || n.hoursTracked() > 0;
     }
 
     public List<EntityInsightDTO> hotEntities(int limit) {
@@ -425,9 +440,8 @@ public class InsightsService {
     // ─────────────────────────────────────────────────────────────
 
     private String pickNoteBadge(double score, long daysSinceLast, long recentMentions) {
-        if (recentMentions >= 5 && daysSinceLast <= 7) return "Hot Right Now";
-        if (score >= HIGH_RELEVANCE_THRESHOLD) return "High Relevance";
-        if (daysSinceLast >= FORGOTTEN_DAYS_THRESHOLD && score >= FORGOTTEN_MIN_SCORE) return "Worth Revisiting";
+        if (recentMentions >= 5 && daysSinceLast <= 4) return "Hot Right Now";
+        if (score >= HIGH_RELEVANCE_THRESHOLD && daysSinceLast <= 14) return "High Relevance";
         return "Active";
     }
 
