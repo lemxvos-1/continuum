@@ -99,37 +99,6 @@ const CATEGORY_META: Record<InsightCategory, { labelKey: string; subtitleKey: st
 };
 
 const categoryOrder: InsightCategory[] = ["hotNotes", "hotEntities", "worthRevisiting", "forgottenGems"];
-const MOCK_MEMORY_IMAGE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1' y2='1'%3E%3Cstop stop-color='%23d6d3d1'/%3E%3Cstop offset='1' stop-color='%2378716c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3Ccircle cx='490' cy='90' r='48' fill='%23f5f5f4' fill-opacity='.7'/%3E%3Cpath d='M0 300 180 150l120 120 90-80 250 170H0' fill='%2344403c' fill-opacity='.55'/%3E%3C/svg%3E";
-const MOCK_MEMORIES: MemoryItem[] = [
-  {
-    noteId: "demo-memory-1",
-    title: "Primeiras ideias do projeto",
-    excerpt: "Comecei a reunir as ideias centrais e os caminhos possíveis. Rever este registro mostra como as prioridades foram mudando ao longo do tempo.",
-    imageUrl: MOCK_MEMORY_IMAGE,
-    daysAgo: 30,
-    milestone: "30d",
-    createdAt: "2026-09-29T12:00:00Z",
-  },
-  {
-    noteId: "demo-memory-2",
-    title: "Uma conversa que mudou minha perspectiva",
-    excerpt: "Anotei os pontos mais importantes daquela conversa e as perguntas que ficaram. Algumas delas ainda ajudam a orientar minhas decisões.",
-    imageUrl: null,
-    daysAgo: 90,
-    milestone: "90d",
-    createdAt: "2026-07-31T12:00:00Z",
-  },
-  {
-    noteId: "demo-memory-3",
-    title: "Plano para um novo ciclo",
-    excerpt: "Um resumo das metas, referências e pequenos passos que eu queria experimentar durante aquele período.",
-    imageUrl: MOCK_MEMORY_IMAGE,
-    daysAgo: 365,
-    milestone: "365d",
-    createdAt: "2025-10-29T12:00:00Z",
-  },
-];
 
 /* ── Helpers de Formatação e Estilo ─────────────────────────────────── */
 
@@ -152,41 +121,6 @@ function StatChip({ children }: { children: ReactNode }) {
     <Badge variant="outline" className="rounded-sm border-border/5 bg-foreground/[0.02] px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
       {children}
     </Badge>
-  );
-}
-
-/* ── Sidebar Nav Item ─────────────────────────────────────────────────── */
-
-interface NavItemProps {
-  label: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}
-
-function NavItem({ label, count, active, onClick }: NavItemProps) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      className={cn(
-        "group flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-[13px] normal-case transition-colors",
-        active ? "text-foreground" : "text-muted-foreground hover:text-muted-foreground",
-      )}
-      onClick={onClick}
-    >
-      <span className="flex items-center gap-2">
-        <span
-          aria-hidden
-          className={cn(
-            "h-px w-3 transition-all",
-            active ? "bg-foreground w-5" : "bg-foreground/20 group-hover:bg-foreground/40",
-          )}
-        />
-        {label}
-      </span>
-      <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{count}</span>
-    </Button>
   );
 }
 
@@ -255,7 +189,7 @@ function memoryMilestoneLabel(
   return t("ins_milestone_ny", { years });
 }
 
-function MemoryCard({ item, onOpen, isDemo = false }: { item: MemoryItem; onOpen: () => void; isDemo?: boolean }) {
+function MemoryCard({ item, onOpen }: { item: MemoryItem; onOpen: () => void }) {
   const { t } = useLanguage();
   const [imageVisible, setImageVisible] = useState(Boolean(item.imageUrl));
 
@@ -263,7 +197,6 @@ function MemoryCard({ item, onOpen, isDemo = false }: { item: MemoryItem; onOpen
     <button
       type="button"
       onClick={onOpen}
-      disabled={isDemo}
       className="group flex min-w-[260px] flex-col overflow-hidden rounded-xl border border-border/10 bg-card text-left transition-colors hover:border-border/25 hover:bg-accent/30 sm:min-w-0"
       aria-label={`${t("ins_memories_view_note")}: ${item.title}`}
     >
@@ -302,13 +235,8 @@ function MemoriesSection() {
     { staleTime: STALE.HOUR },
   );
   const memories = memoriesQuery.data;
-  const showingDemo =
-    import.meta.env.DEV &&
-    new URLSearchParams(window.location.search).get("demoMemories") === "1" &&
-    !memories?.length;
-  const displayedMemories = memories?.length ? memories : showingDemo ? MOCK_MEMORIES : [];
 
-  if (!displayedMemories.length) return null;
+  if (!memories?.length) return null;
 
   return (
     <section className="mb-8 border-b border-border/10 pb-8" aria-labelledby="ins-memories-title">
@@ -319,20 +247,14 @@ function MemoriesSection() {
         <p className="mt-1 text-sm text-muted-foreground">{t("ins_memories_subtitle")}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {displayedMemories.map((item) => (
+        {memories.map((item) => (
           <MemoryCard
             key={item.noteId}
             item={item}
             onOpen={() => navigate(`/notes/${item.noteId}`)}
-            isDemo={showingDemo}
           />
         ))}
       </div>
-      {showingDemo && (
-        <p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-          {t("ins_memories_demo")}
-        </p>
-      )}
     </section>
   );
 }
@@ -491,46 +413,19 @@ export default function Insights() {
     };
   }, [insights, search]);
 
-  const SidebarContent = (
-    <div className="space-y-7">
-      <div>
-        <p className="mb-3 text-[10px] uppercase tracking-[0.32em] text-muted-foreground">{t("ins_index")}</p>
-        <NavItem label={t("ins_all_insights")} count={counts.all} active={view === "all"} onClick={() => setView("all")} />
-      </div>
-      <div>
-        <p className="mb-3 text-[10px] uppercase tracking-[0.32em] text-muted-foreground">{t("ins_signals")}</p>
-        <div className="space-y-0.5">
-          {categoryOrder.map((cat) => (
-            <NavItem
-              key={cat}
-              label={t(CATEGORY_META[cat].labelKey)}
-              count={counts[cat]}
-              active={view === cat}
-              onClick={() => setView(cat)}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <AppLayout>
       <div className="relative min-h-full">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 pb-5 pt-[14px] lg:flex-row lg:gap-16 lg:px-12 lg:py-16">
-          <aside className="hidden lg:sticky lg:top-16 lg:block lg:w-52 lg:shrink-0 lg:self-start">
-            {SidebarContent}
-          </aside>
-          <main className="min-w-0 flex-1">
+        <main className="mx-auto min-h-full w-full max-w-5xl px-4 pb-8 pt-5 sm:px-6 lg:px-8 lg:pt-8">
             {/* Evolução do score */}
-            <div className="-mx-6 mb-6 sm:-mx-2 lg:-mx-4 lg:mb-8">
+            <div className="-mx-4 mb-6 sm:-mx-2 lg:mx-0 lg:mb-8">
               <ScoreEvolutionSection />
             </div>
 
             <MemoriesSection />
 
-            {/* Mobile: search + category chips */}
-            <div className="mb-5 space-y-3 lg:hidden">
+            {/* Shared search and category filters */}
+            <div className="mb-5 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="relative z-0 flex-1">
                   <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -538,7 +433,7 @@ export default function Insights() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={t("ins_searchAmong", { n: counts.all }) || `Search among ${counts.all} signals…`}
-                    className="h-12 w-full rounded-2xl bg-accent pl-11 text-[15px] placeholder:italic placeholder:text-muted-foreground"
+                    className="h-12 w-full rounded-2xl bg-accent pl-11 text-[15px] placeholder:italic placeholder:text-muted-foreground lg:max-w-2xl"
                   />
                 </div>
                 <Button
@@ -561,19 +456,6 @@ export default function Insights() {
                   ...categoryOrder.map((cat) => ({ value: cat, label: t(CATEGORY_META[cat].labelKey) })),
                 ]}
               />
-            </div>
-
-            {/* Input de Busca Sticky (desktop) */}
-            <div className="sticky top-14 z-10 -mx-4 hidden border-b border-border/10 bg-background/70 px-4 py-3 backdrop-blur-xl lg:block">
-              <div className="relative">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t("ins_search_placeholder")}
-                  className="w-full border-0 bg-transparent pl-6 text-sm text-foreground placeholder:italic placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
             </div>
 
             <div className="flex items-center justify-between border-b border-border/5 pb-3 pt-4 mb-4 text-[11px] text-muted-foreground">
@@ -608,8 +490,7 @@ export default function Insights() {
                 </ul>
               )}
             </div>
-          </main>
-        </div>
+        </main>
       </div>
     </AppLayout>
   );

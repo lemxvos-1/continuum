@@ -53,7 +53,6 @@ export const dict: Module = {
     ins_milestone_6m: "6 months ago",
     ins_milestone_1y: "1 year ago",
     ins_milestone_ny: "{years} years ago",
-    ins_memories_demo: "Visual preview with sample data — visible only in development.",
   },
   es: {
     ins_title: "Perspectivas",
@@ -107,7 +106,6 @@ export const dict: Module = {
     ins_milestone_6m: "Hace 6 meses",
     ins_milestone_1y: "Hace 1 año",
     ins_milestone_ny: "Hace {years} años",
-    ins_memories_demo: "Vista previa con datos de ejemplo — solo visible en desarrollo.",
   },
   pt: {
     ins_title: "Insights",
@@ -161,7 +159,6 @@ export const dict: Module = {
     ins_milestone_6m: "Há 6 meses",
     ins_milestone_1y: "Há 1 ano",
     ins_milestone_ny: "Há {years} anos",
-    ins_memories_demo: "Prévia visual com dados de exemplo — visível apenas em desenvolvimento.",
   },
   fr: {
     ins_title: "Aperçus",
@@ -215,6 +212,5 @@ export const dict: Module = {
     ins_milestone_6m: "Il y a 6 mois",
     ins_milestone_1y: "Il y a 1 an",
     ins_milestone_ny: "Il y a {years} ans",
-    ins_memories_demo: "Aperçu avec des données d'exemple — visible uniquement en développement.",
   },
 };
