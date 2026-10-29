@@ -433,7 +433,7 @@ export default function Insights() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={t("ins_searchAmong", { n: counts.all }) || `Search among ${counts.all} signals…`}
-                    className="h-12 w-full rounded-2xl bg-accent pl-11 text-[15px] placeholder:italic placeholder:text-muted-foreground lg:max-w-2xl"
+                    className="h-12 w-full rounded-2xl bg-accent pl-11 text-[15px] placeholder:italic placeholder:text-muted-foreground"
                   />
                 </div>
                 <Button
