@@ -25,6 +25,7 @@ import { InsightBadge } from "@/components/InsightSignal";
 
 import { cn } from "@/lib/utils";
 import { insightsApi } from "@/lib/api";
+import type { MemoryItem } from "@/lib/api";
 import { useCachedResource } from "@/hooks/useCachedResource";
 import { qk, STALE } from "@/lib/queries";
 import { useToast } from "@/hooks/use-toast";
@@ -213,6 +214,92 @@ function InsightRow({ item }: { item: InsightItem }) {
   );
 }
 
+function memoryMilestoneLabel(
+  item: MemoryItem,
+  t: (key: string, vars?: Record<string, number>) => string,
+) {
+  const milestone = item.milestone.toLowerCase();
+  if (milestone === "m1" || milestone === "30d") return t("ins_milestone_1m");
+  if (milestone === "m3" || milestone === "90d") return t("ins_milestone_3m");
+  if (milestone === "m6" || milestone === "180d") return t("ins_milestone_6m");
+  if (milestone === "y1" || milestone === "365d") return t("ins_milestone_1y");
+
+  const yearMatch = /^(?:y(\d+)|(\d+)y)$/.exec(milestone);
+  const years = yearMatch ? Number(yearMatch[1] ?? yearMatch[2]) : Math.floor(item.daysAgo / 365);
+  if (years <= 1) return t("ins_milestone_1y");
+  return t("ins_milestone_ny", { years });
+}
+
+function MemoryCard({ item, onOpen }: { item: MemoryItem; onOpen: () => void }) {
+  const { t } = useLanguage();
+  const [imageVisible, setImageVisible] = useState(Boolean(item.imageUrl));
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group flex min-w-[260px] flex-col overflow-hidden rounded-xl border border-border/10 bg-card text-left transition-colors hover:border-border/25 hover:bg-accent/30 sm:min-w-0"
+      aria-label={`${t("ins_memories_view_note")}: ${item.title}`}
+    >
+      {imageVisible && item.imageUrl && (
+        <img
+          src={item.imageUrl}
+          alt=""
+          className="aspect-[16/9] w-full object-cover"
+          onError={() => setImageVisible(false)}
+        />
+      )}
+      <div className="flex flex-1 flex-col items-start p-4">
+        <Badge variant="outline" className="mb-3 rounded-sm border-border/10 bg-transparent font-mono text-[10px] text-muted-foreground">
+          {memoryMilestoneLabel(item, t)}
+        </Badge>
+        <h3 className="mb-2 font-serif text-lg font-semibold leading-snug text-foreground">
+          {item.title || t("ins_untitled")}
+        </h3>
+        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+          {item.excerpt}
+        </p>
+        <span className="mt-4 text-xs text-foreground/70 group-hover:text-foreground">
+          {t("ins_memories_view_note")}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function MemoriesSection() {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const memoriesQuery = useCachedResource<MemoryItem[]>(
+    qk.insights("memories"),
+    async () => (await insightsApi.memories()).data,
+    { staleTime: STALE.HOUR },
+  );
+  const memories = memoriesQuery.data;
+
+  if (!memories?.length) {
+    return memoriesQuery.error ? (
+      <p className="py-2 text-xs text-muted-foreground">{t("ins_could_not_load")}</p>
+    ) : null;
+  }
+
+  return (
+    <section className="mb-8" aria-labelledby="ins-memories-title">
+      <div className="mb-4">
+        <h2 id="ins-memories-title" className="font-serif text-2xl text-foreground">
+          {t("ins_memories_title")}
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("ins_memories_subtitle")}</p>
+      </div>
+      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+        {memories.map((item) => (
+          <MemoryCard key={item.noteId} item={item} onOpen={() => navigate(`/notes/${item.noteId}`)} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ── Componente Principal ─────────────────────────────────────────────── */
 
 export default function Insights() {
@@ -354,13 +441,22 @@ export default function Insights() {
     });
   }, [insights, search, view]);
 
-  const counts = {
-    all: insights.length,
-    hotNotes: hotNotes.length,
-    hotEntities: hotEntities.length,
-    worthRevisiting: forgottenNotes.length,
-    forgottenGems: forgottenEntities.length,
-  };
+  const counts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const matchesSearch = (item: InsightItem) => {
+      if (!query) return true;
+      return `${item.title} ${item.subtitle} ${item.badge}`.toLowerCase().includes(query);
+    };
+    const searchFiltered = query ? insights.filter(matchesSearch) : insights;
+
+    return {
+      all: searchFiltered.length,
+      hotNotes: searchFiltered.filter((item) => item.category === "hotNotes").length,
+      hotEntities: searchFiltered.filter((item) => item.category === "hotEntities").length,
+      worthRevisiting: searchFiltered.filter((item) => item.category === "worthRevisiting").length,
+      forgottenGems: searchFiltered.filter((item) => item.category === "forgottenGems").length,
+    };
+  }, [insights, search]);
 
   const SidebarContent = (
     <div className="space-y-7">
@@ -409,7 +505,7 @@ export default function Insights() {
               <ScoreEvolutionSection />
             </div>
 
-
+            <MemoriesSection />
 
             {/* Mobile: search + category chips */}
             <div className="mb-5 space-y-3 lg:hidden">

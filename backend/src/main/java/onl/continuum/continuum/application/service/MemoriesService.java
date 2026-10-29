@@ -35,7 +35,7 @@ public class MemoriesService {
     static final int FEED_MAX = 3;
     /** Feed milestones (days). Anniversaries beyond 1 year are handled separately. */
     static final int[] FEED_MILESTONES = {30, 90, 180, 365};
-    /** A milestone stays visible for this many days so it is not missed. */
+    /** A milestone stays visible within this many days before or after its date. */
     static final int FEED_WINDOW_DAYS = 3;
     /** Notes need at least this many connections to resurface (no shallow notes). */
     static final int MIN_CONNECTIONS_FEED = 2;
@@ -106,7 +106,7 @@ public class MemoriesService {
         if (best.isEmpty()) return;
         Note n = best.get();
         Memory m = toMemory(n, today, emailMilestone(daysAgo(n, today), createdDate(n), today));
-        if (m.excerpt().length() < MIN_EXCERPT_CHARS_EMAIL && m.imageUrl() == null) return;
+        if (m.excerpt().length() < MIN_EXCERPT_CHARS_EMAIL) return;
         email.sendMemory(user.getEmail(), user.getUsername(), user.getLanguage(), m);
     }
 
@@ -115,12 +115,11 @@ public class MemoriesService {
     /** Returns a milestone key when {@code days} falls inside a feed window, else null. */
     static String feedMilestone(long days) {
         for (int mark : FEED_MILESTONES) {
-            if (days >= mark && days < mark + FEED_WINDOW_DAYS) return key(mark);
+            if (Math.abs(days - mark) <= FEED_WINDOW_DAYS) return key(mark);
         }
-        if (days > 365 + FEED_WINDOW_DAYS) {
-            long years = days / 365;
-            long rem = days - years * 365;
-            if (rem < FEED_WINDOW_DAYS) return "y" + years;
+        long years = Math.round(days / 365.0);
+        if (years >= 2 && Math.abs(days - years * 365) <= FEED_WINDOW_DAYS) {
+            return "y" + years;
         }
         return null;
     }
@@ -153,7 +152,7 @@ public class MemoriesService {
     /** Picks the first meaningful paragraph (≥ 60 chars) or the first text, trimmed to ~220 chars. */
     static String extractExcerpt(String content) {
         List<String> paragraphs = paragraphs(content);
-        String pick = paragraphs.stream().filter(p -> p.length() >= 60).findFirst()
+        String pick = paragraphs.stream().filter(p -> p.length() > 60).findFirst()
                 .orElse(paragraphs.isEmpty() ? "" : paragraphs.get(0));
         pick = pick.replaceAll("\\s+", " ").trim();
         if (pick.length() <= 220) return pick;

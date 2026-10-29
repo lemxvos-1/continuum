@@ -634,12 +634,22 @@ export const timeTrackingApi = {
   recoverSession: (entityId: string) => api.post(`/api/time-tracking/${entityId}/recover`),
 };
 
+export interface MemoryItem {
+  noteId: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string | null;
+  daysAgo: number;
+  milestone: string;
+  createdAt: string;
+}
 
 export const insightsApi = {
   hotNotes: (limit = 10) => api.get("/api/insights/notes/hot", { params: { limit } }),
   forgottenNotes: (limit = 10) => api.get("/api/insights/notes/forgotten", { params: { limit } }),
   hotEntities: (limit = 10) => api.get("/api/insights/entities/hot", { params: { limit } }),
   forgottenEntities: (limit = 10) => api.get("/api/insights/entities/forgotten", { params: { limit } }),
+  memories: () => api.get<MemoryItem[]>("/api/insights/memories"),
 };
 
 export const importApi = {
