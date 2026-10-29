@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { queryClient } from "@/lib/query-client";
+import { resetAllCaches } from "@/lib/query-client";
 
 /** Active workspace id, or null for the unified "All" view. Persisted per device. */
 const KEY = "continuum:workspace";
@@ -25,11 +25,10 @@ export function setActiveWorkspace(id: string | null) {
     else localStorage.removeItem(KEY);
   } catch { /* ignore */ }
   listeners.forEach((l) => l());
-  // Scoped lists must be refetched with the new workspace header.
-  for (const key of ["notes", "entities", "graph", "insights", "metrics", "dashboard"]) {
-    queryClient.removeQueries({ queryKey: [key] });
-  }
-  queryClient.invalidateQueries();
+  // Drop every cached response (memory + IndexedDB) so nothing from the
+  // previous workspace renders while the new one loads. Active queries
+  // refetch automatically with the new workspace header.
+  void resetAllCaches();
 }
 
 export function useActiveWorkspace(): string | null {
