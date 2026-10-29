@@ -116,8 +116,19 @@ public class InsightsService {
     // PUBLIC API
     // ─────────────────────────────────────────────────────────────
 
+    /** Only notes with a real "hot" signal belong to Hot Notes — plain "Active" notes are excluded. */
+    static boolean isHotNoteBadge(String badge) {
+        return "Hot Right Now".equals(badge) || "High Relevance".equals(badge);
+    }
+
+    /** Only entities with a real "hot"/"key" signal belong to Key people & projects. */
+    static boolean isHotEntityBadge(String badge) {
+        return "Hot Right Now".equals(badge) || "Key Entity".equals(badge);
+    }
+
     public List<NoteInsightDTO> hotNotes(int limit) {
         return computeAllNoteInsights().stream()
+                .filter(n -> isHotNoteBadge(n.badge()))
                 .sorted(Comparator
                         .comparingInt((NoteInsightDTO n) -> "Hot Right Now".equals(n.badge()) ? 0 : 1)
                         .thenComparing(Comparator.comparingDouble(NoteInsightDTO::score).reversed()))
@@ -131,6 +142,7 @@ public class InsightsService {
         int cap = Math.max(1, (int) Math.ceil(all.size() * FORGOTTEN_TOP_SHARE));
         int max = Math.min(limit > 0 ? limit : DEFAULT_LIMIT, cap);
         return all.stream()
+                .filter(n -> !isHotNoteBadge(n.badge()))
                 .filter(n -> n.daysSinceLastInteraction() >= window)
                 .filter(InsightsService::hasSubstance)
                 .filter(InsightsService::qualifiesAsForgotten)
@@ -150,6 +162,7 @@ public class InsightsService {
 
     public List<EntityInsightDTO> hotEntities(int limit) {
         return computeAllEntityInsights().stream()
+                .filter(e -> isHotEntityBadge(e.badge()))
                 .sorted(Comparator
                         .comparingInt((EntityInsightDTO e) -> "Hot Right Now".equals(e.badge()) ? 0 : 1)
                         .thenComparing(Comparator.comparingDouble(EntityInsightDTO::score).reversed()))
@@ -159,6 +172,7 @@ public class InsightsService {
 
     public List<EntityInsightDTO> forgottenEntities(int limit) {
         return computeAllEntityInsights().stream()
+                .filter(e -> !isHotEntityBadge(e.badge()))
                 .filter(e -> e.daysSinceLastMention() >= FORGOTTEN_DAYS_THRESHOLD)
                 .filter(InsightsService::qualifiesAsForgotten)
                 .sorted(Comparator.comparingDouble((EntityInsightDTO e) -> baseScoreForForgotten(e)).reversed())
