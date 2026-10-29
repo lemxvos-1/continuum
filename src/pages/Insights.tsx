@@ -302,8 +302,13 @@ function MemoriesSection() {
     { staleTime: STALE.HOUR },
   );
   const memories = memoriesQuery.data;
-  const showingDemo = import.meta.env.DEV && !memoriesQuery.loading && !memories?.length;
+  const showingDemo =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get("demoMemories") === "1" &&
+    !memories?.length;
   const displayedMemories = memories?.length ? memories : showingDemo ? MOCK_MEMORIES : [];
+
+  if (!displayedMemories.length) return null;
 
   return (
     <section className="mb-8 border-b border-border/10 pb-8" aria-labelledby="ins-memories-title">
@@ -313,38 +318,16 @@ function MemoriesSection() {
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("ins_memories_subtitle")}</p>
       </div>
-      {memoriesQuery.loading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {[0, 1, 2].map((item) => <Skeleton key={item} className="h-40 w-full rounded-xl" />)}
-        </div>
-      ) : memoriesQuery.error ? (
-        showingDemo ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedMemories.map((item) => (
-              <MemoryCard key={item.noteId} item={item} onOpen={() => undefined} isDemo />
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-xl border border-border/10 bg-accent/30 px-4 py-5 text-sm text-muted-foreground">
-            {t("ins_memories_error")}
-          </p>
-        )
-      ) : displayedMemories.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {displayedMemories.map((item) => (
-            <MemoryCard
-              key={item.noteId}
-              item={item}
-              onOpen={() => navigate(`/notes/${item.noteId}`)}
-              isDemo={showingDemo}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="rounded-xl border border-border/10 bg-accent/30 px-4 py-5 text-sm leading-relaxed text-muted-foreground">
-          {t("ins_memories_empty")}
-        </p>
-      )}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {displayedMemories.map((item) => (
+          <MemoryCard
+            key={item.noteId}
+            item={item}
+            onOpen={() => navigate(`/notes/${item.noteId}`)}
+            isDemo={showingDemo}
+          />
+        ))}
+      </div>
       {showingDemo && (
         <p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/70">
           {t("ins_memories_demo")}
