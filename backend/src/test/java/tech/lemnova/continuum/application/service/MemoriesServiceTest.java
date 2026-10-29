@@ -38,8 +38,8 @@ class MemoriesServiceTest {
 
     @Test
     void feedMilestoneIncludesThreeDaysOnEitherSideOfEachMilestone() {
-        int[] marks = {30, 90, 180, 365, 730};
-        String[] milestones = {"m1", "m3", "m6", "y1", "y2"};
+        int[] marks = {30, 90, 180, 365, 730, 1095};
+        String[] milestones = {"30d", "90d", "180d", "365d", "2y", "3y"};
 
         for (int i = 0; i < marks.length; i++) {
             for (int offset = -MemoriesService.FEED_WINDOW_DAYS;

@@ -137,10 +137,10 @@ public class MemoriesService {
 
     private static String key(int mark) {
         return switch (mark) {
-            case 30 -> "m1";
-            case 90 -> "m3";
-            case 180 -> "m6";
-            default -> "y1";
+            case 30 -> "30d";
+            case 90 -> "90d";
+            case 180 -> "180d";
+            default -> "365d";
         };
     }
 
@@ -149,7 +149,7 @@ public class MemoriesService {
     private static final Pattern MD_IMG = Pattern.compile("!\\[[^\\]]*]\\((https?://[^)\\s]+)");
     private static final Pattern HTML_IMG = Pattern.compile("<img[^>]+src=[\"'](https?://[^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
-    /** Picks the first meaningful paragraph (≥ 60 chars) or the first text, trimmed to ~220 chars. */
+    /** Picks the first meaningful paragraph (> 60 chars) or the first text, trimmed to ~220 chars. */
     static String extractExcerpt(String content) {
         List<String> paragraphs = paragraphs(content);
         String pick = paragraphs.stream().filter(p -> p.length() > 60).findFirst()

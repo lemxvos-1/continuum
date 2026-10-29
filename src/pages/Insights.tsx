@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FireIcon,
@@ -7,16 +7,13 @@ import {
   ArrowTrendingUpIcon,
   ArrowPathIcon,
   MagnifyingGlassIcon,
-  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import AppLayout from "@/components/AppLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { FilterChips } from "@/components/ui/filter-chips";
-import { FitText } from "@/components/ui/fit-text";
 import { ListRowContent } from "@/components/ui/list-row-content";
 import { EntityTypeIcon } from "@/components/ui/entity-type-icon";
 import { StickyNote } from "@/lib/heroicons";
@@ -28,7 +25,6 @@ import { insightsApi } from "@/lib/api";
 import type { MemoryItem } from "@/lib/api";
 import { useCachedResource } from "@/hooks/useCachedResource";
 import { qk, STALE } from "@/lib/queries";
-import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 /* ── Types ────────────────────────────────────────────────────────────── */
@@ -129,41 +125,6 @@ function StatChip({ children }: { children: ReactNode }) {
 }
 
 /* ── Sidebar Nav Item ─────────────────────────────────────────────────── */
-
-interface NavItemProps {
-  label: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}
-
-function NavItem({ label, count, active, onClick }: NavItemProps) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      className={cn(
-        "group flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-[13px] normal-case transition-colors",
-        active ? "text-foreground" : "text-muted-foreground hover:text-muted-foreground"
-      )}
-      onClick={onClick}
-    >
-      <span className="flex items-center gap-2">
-        <span
-          aria-hidden
-          className={cn(
-            "h-px w-3 transition-all",
-            active ? "bg-foreground w-5" : "bg-foreground/20 group-hover:bg-foreground/40"
-          )}
-        />
-        {label}
-      </span>
-      <span className={cn("font-mono text-[10px] tabular-nums", active ? "text-muted-foreground" : "text-muted-foreground")}>
-        {count}
-      </span>
-    </Button>
-  );
-}
 
 /* ── Linha do Insight ───────────────────────────────────────────────── */
 
@@ -277,25 +238,33 @@ function MemoriesSection() {
   );
   const memories = memoriesQuery.data;
 
-  if (!memories?.length) {
-    return memoriesQuery.error ? (
-      <p className="py-2 text-xs text-muted-foreground">{t("ins_could_not_load")}</p>
-    ) : null;
-  }
-
   return (
-    <section className="mb-8" aria-labelledby="ins-memories-title">
+    <section className="mb-8 border-b border-border/10 pb-8" aria-labelledby="ins-memories-title">
       <div className="mb-4">
         <h2 id="ins-memories-title" className="font-serif text-2xl text-foreground">
           {t("ins_memories_title")}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("ins_memories_subtitle")}</p>
       </div>
-      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
-        {memories.map((item) => (
-          <MemoryCard key={item.noteId} item={item} onOpen={() => navigate(`/notes/${item.noteId}`)} />
-        ))}
-      </div>
+      {memoriesQuery.loading ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((item) => <Skeleton key={item} className="h-40 w-full rounded-xl" />)}
+        </div>
+      ) : memoriesQuery.error ? (
+        <p className="rounded-xl border border-border/10 bg-accent/30 px-4 py-5 text-sm text-muted-foreground">
+          {t("ins_memories_error")}
+        </p>
+      ) : memories?.length ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {memories.map((item) => (
+            <MemoryCard key={item.noteId} item={item} onOpen={() => navigate(`/notes/${item.noteId}`)} />
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-border/10 bg-accent/30 px-4 py-5 text-sm leading-relaxed text-muted-foreground">
+          {t("ins_memories_empty")}
+        </p>
+      )}
     </section>
   );
 }
@@ -305,8 +274,6 @@ function MemoriesSection() {
 export default function Insights() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
   const insightsQuery = useCachedResource<{
     hotNotes: NoteInsight[];
     forgottenNotes: NoteInsight[];
@@ -340,8 +307,6 @@ export default function Insights() {
   
   const [view, setView] = useState<View>("all");
   const [search, setSearch] = useState("");
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-
   const load = async (_silent = false) => {
     await insightsQuery.refetch();
   };
@@ -458,65 +423,27 @@ export default function Insights() {
     };
   }, [insights, search]);
 
-  const SidebarContent = (
-    <div className="space-y-7">
-      <div>
-        <p className="mb-3 text-[10px] uppercase tracking-[0.32em] text-muted-foreground">{t("ins_index")}</p>
-        <NavItem label={t("ins_all_insights")} count={counts.all} active={view === "all"} onClick={() => { setView("all"); setFilterDrawerOpen(false); }} />
-      </div>
-      <div>
-        <p className="mb-3 text-[10px] uppercase tracking-[0.32em] text-muted-foreground">{t("ins_signals")}</p>
-        <div className="space-y-0.5">
-          {categoryOrder.map((cat) => (
-            <NavItem
-              key={cat}
-              label={t(CATEGORY_META[cat].labelKey)}
-              count={counts[cat]}
-              active={view === cat}
-              onClick={() => { setView(cat); setFilterDrawerOpen(false); }}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <AppLayout>
       <div className="relative min-h-full">
-        {/* Menu Lateral Mobile */}
-        <Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
-          <SheetContent side="left" className="w-[280px] border-border/10 bg-background/95 p-6">
-            <p className="mb-6 font-serif text-2xl text-foreground">{t("ins_filters")}</p>
-            {SidebarContent}
-          </SheetContent>
-        </Sheet>
-
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 pt-[14px] pb-5 lg:flex-row lg:gap-16 lg:px-12 lg:py-16">
-          {/* Sidebar Desktop */}
-          <aside className="hidden lg:sticky lg:top-16 lg:block lg:w-52 lg:shrink-0 lg:self-start">
-            {SidebarContent}
-          </aside>
-
-          {/* Conteúdo Principal */}
-          <main className="min-w-0 flex-1">
+        <main className="mx-auto min-h-full w-full max-w-5xl px-4 pb-8 pt-5 sm:px-6 lg:px-8 lg:pt-8">
             {/* Evolução do score */}
-            <div className="-mx-6 mb-6 sm:-mx-2 lg:-mx-4 lg:mb-8">
+            <div className="-mx-4 mb-6 sm:-mx-2 lg:mx-0 lg:mb-8">
               <ScoreEvolutionSection />
             </div>
 
             <MemoriesSection />
 
-            {/* Mobile: search + category chips */}
-            <div className="mb-5 space-y-3 lg:hidden">
+            {/* Shared list controls across mobile and desktop */}
+            <div className="mb-5 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="relative z-0 flex-1">
                   <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder={t("ins_searchAmong", { n: counts.all }) || `Search among ${counts.all} signals…`}
-                    className="h-12 w-full rounded-2xl bg-accent pl-11 text-[15px] placeholder:italic placeholder:text-muted-foreground"
+                    placeholder={t("ins_search_placeholder")}
+                    className="h-12 w-full rounded-2xl bg-accent pl-11 text-[15px] placeholder:italic placeholder:text-muted-foreground lg:max-w-xl"
                   />
                 </div>
                 <Button
@@ -535,23 +462,13 @@ export default function Insights() {
                 value={view}
                 onChange={(v) => setView(v as View)}
                 options={[
-                  { value: "all", label: t("ins_all_insights") },
-                  ...categoryOrder.map((cat) => ({ value: cat, label: t(CATEGORY_META[cat].labelKey) })),
+                  { value: "all", label: `${t("ins_all_insights")} · ${counts.all}` },
+                  ...categoryOrder.map((cat) => ({
+                    value: cat,
+                    label: `${t(CATEGORY_META[cat].labelKey)} · ${counts[cat]}`,
+                  })),
                 ]}
               />
-            </div>
-
-            {/* Input de Busca Sticky (desktop) */}
-            <div className="sticky top-14 z-10 -mx-4 hidden border-b border-border/10 bg-background/70 px-4 py-3 backdrop-blur-xl lg:block">
-              <div className="relative">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t("ins_search_placeholder")}
-                  className="w-full border-0 bg-transparent pl-6 text-sm text-foreground placeholder:italic placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
             </div>
 
 
@@ -587,8 +504,7 @@ export default function Insights() {
                 </ul>
               )}
             </div>
-          </main>
-        </div>
+        </main>
       </div>
     </AppLayout>
   );
