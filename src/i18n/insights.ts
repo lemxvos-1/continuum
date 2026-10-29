@@ -55,6 +55,7 @@ export const dict: Module = {
     ins_milestone_ny: "{years} years ago",
     ins_memories_empty: "No notes are reaching a memory milestone today. Notes with at least two connections appear here around their 1, 3, 6, or 12 month anniversary, and each year after that.",
     ins_memories_error: "Memories couldn't be loaded. Please try again later.",
+    ins_memories_demo: "Visual preview with sample data — visible only in development.",
   },
   es: {
     ins_title: "Perspectivas",
@@ -110,6 +111,7 @@ export const dict: Module = {
     ins_milestone_ny: "Hace {years} años",
     ins_memories_empty: "Hoy ninguna nota alcanza un aniversario. Aquí aparecen notas con al menos dos conexiones al cumplir 1, 3, 6 o 12 meses, y cada año después.",
     ins_memories_error: "No se pudieron cargar los recuerdos. Inténtalo más tarde.",
+    ins_memories_demo: "Vista previa con datos de ejemplo — solo visible en desarrollo.",
   },
   pt: {
     ins_title: "Insights",
@@ -165,6 +167,7 @@ export const dict: Module = {
     ins_milestone_ny: "Há {years} anos",
     ins_memories_empty: "Hoje nenhuma nota completa um marco. Aparecem aqui notas com pelo menos duas conexões ao completar 1, 3, 6 ou 12 meses, e a cada ano depois disso.",
     ins_memories_error: "Não foi possível carregar as recordações. Tente novamente mais tarde.",
+    ins_memories_demo: "Prévia visual com dados de exemplo — visível apenas em desenvolvimento.",
   },
   fr: {
     ins_title: "Aperçus",
@@ -220,5 +223,6 @@ export const dict: Module = {
     ins_milestone_ny: "Il y a {years} ans",
     ins_memories_empty: "Aucune note n'atteint un anniversaire aujourd'hui. Les notes avec au moins deux connexions apparaissent ici après 1, 3, 6 ou 12 mois, puis chaque année.",
     ins_memories_error: "Impossible de charger les souvenirs. Veuillez réessayer plus tard.",
+    ins_memories_demo: "Aperçu avec des données d'exemple — visible uniquement en développement.",
   },
 };
