@@ -1,4 +1,6 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { prefetchVisionPrice } from "@/hooks/useAdaptiveCheckout";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
