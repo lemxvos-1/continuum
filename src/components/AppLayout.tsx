@@ -48,7 +48,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { theme } = useTheme();
+  useEffect(() => {
+    if (!user || user.plan === "VISION") return;
+    const id = window.setTimeout(() => prefetchVisionPrice(language, theme), 1500);
+    return () => window.clearTimeout(id);
+    // Theme only styles the form; don't recreate the session when it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.plan, language]);
   const [workspaceMenuExpanded, setWorkspaceMenuExpanded] = useState(false);
   const isGraphPage = location.pathname.startsWith("/graph");
   const isNoteEditor = /^\/notes\/[^/]+$/.test(location.pathname);
