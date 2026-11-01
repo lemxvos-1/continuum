@@ -17,11 +17,11 @@ const dateFnsLocales: Record<UserLanguage, Locale> = {
 };
 
 export function getDateLocale(language: UserLanguage): string {
-  return dateLocales[language];
+  return dateLocales[language] ?? dateLocales.en;
 }
 
 export function getDateFnsLocale(language: UserLanguage): Locale {
-  return dateFnsLocales[language];
+  return dateFnsLocales[language] ?? enUS;
 }
 
 function parseDate(value: Date | string | number): Date {
@@ -49,5 +49,8 @@ export function formatLocalizedRelativeDate(value: Date | string | number, langu
   if (daysAgo < 2) return relative.format(-1, "day");
   if (daysAgo < 7) return relative.format(-Math.floor(daysAgo), "day");
   if (daysAgo < 30) return relative.format(-Math.floor(daysAgo / 7), "week");
-  return formatLocalizedDate(date, language, { month: "short", day: "numeric" });
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return formatLocalizedDate(date, language, sameYear
+    ? { month: "short", day: "numeric" }
+    : { month: "short", day: "numeric", year: "numeric" });
 }
