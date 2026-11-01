@@ -56,7 +56,7 @@ export function DayDetailsModal({ dayData, isOpen, onClose }: DayDetailsModalPro
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            {format(dayData.date, 'EEEE, MMMM d, yyyy', { locale: getDateFnsLocale(language) })}
+            {formatLocalizedDate(dayData.date, language, { dateStyle: "full" })}
           </DialogTitle>
         </DialogHeader>
 
