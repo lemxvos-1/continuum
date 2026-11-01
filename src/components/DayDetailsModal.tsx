@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getDateFnsLocale } from '@/lib/date-format';
 
 interface DayData {
   date: Date;
