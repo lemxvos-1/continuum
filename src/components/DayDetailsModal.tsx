@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { formatLocalizedDate } from '@/lib/date-format';
 import { Clock, X, FileText } from "@/lib/heroicons";
 import {
   Dialog,
