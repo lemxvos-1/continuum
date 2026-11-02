@@ -50,6 +50,7 @@ import { SearchHighlight } from "./extensions/SearchHighlight";
 import { FindReplace } from "./FindReplace";
 import { StatusBar } from "./StatusBar";
 import { MobileCommandBar } from "./MobileCommandBar";
+import { looksLikeMarkdown, markdownToHtml } from "@/lib/markdown-paste";
 
 export const EDITOR_UPLOAD_EVENT = "continuum:editor-upload";
 
@@ -384,6 +385,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     const { toast } = useToast();
 
     const uploadFileRef = useRef<(file: File) => Promise<void>>();
+    const editorInstanceRef = useRef<Editor | null>(null);
 
     const editor = useEditor({
       extensions: [
@@ -490,7 +492,14 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
               }
             }
           }
-          return false;
+          const html = event.clipboardData?.getData("text/html");
+          const text = event.clipboardData?.getData("text/plain") ?? "";
+          if (html || !looksLikeMarkdown(text)) return false;
+          if (view.state.selection.$from.parent.type.name === "codeBlock") return false;
+          const ed = editorInstanceRef.current;
+          if (!ed) return false;
+          ed.chain().focus().insertContent(markdownToHtml(text)).run();
+          return true;
         },
       },
       onBlur: () => {
@@ -512,6 +521,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
         }, 300);
       },
     });
+    editorInstanceRef.current = editor;
 
     const uploadFileToVault = useCallback(async (file: File) => {
       if (!editor) return;
