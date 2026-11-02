@@ -50,6 +50,7 @@ import { SearchHighlight } from "./extensions/SearchHighlight";
 import { FindReplace } from "./FindReplace";
 import { StatusBar } from "./StatusBar";
 import { MobileCommandBar } from "./MobileCommandBar";
+import { looksLikeMarkdown, markdownToHtml } from "@/lib/markdown-paste";
 
 export const EDITOR_UPLOAD_EVENT = "continuum:editor-upload";
 
@@ -384,6 +385,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     const { toast } = useToast();
 
     const uploadFileRef = useRef<(file: File) => Promise<void>>();
+    const editorInstanceRef = useRef<Editor | null>(null);
 
     const editor = useEditor({
       extensions: [
