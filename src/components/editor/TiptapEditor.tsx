@@ -521,6 +521,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
         }, 300);
       },
     });
+    editorInstanceRef.current = editor;
 
     const uploadFileToVault = useCallback(async (file: File) => {
       if (!editor) return;
