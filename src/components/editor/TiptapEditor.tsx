@@ -490,7 +490,14 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
               }
             }
           }
-          return false;
+          const html = event.clipboardData?.getData("text/html");
+          const text = event.clipboardData?.getData("text/plain") ?? "";
+          if (html || !looksLikeMarkdown(text)) return false;
+          if (view.state.selection.$from.parent.type.name === "codeBlock") return false;
+          const ed = editorInstanceRef.current;
+          if (!ed) return false;
+          ed.chain().focus().insertContent(markdownToHtml(text)).run();
+          return true;
         },
       },
       onBlur: () => {
