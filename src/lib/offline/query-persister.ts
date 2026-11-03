@@ -42,6 +42,8 @@ export function createIdbPersister(): Persister {
       }
     },
     removeClient: async () => {
+      pending = null;
+      if (timer) { clearTimeout(timer); timer = null; }
       try {
         await idbDelete(STORES.METADATA, KEY);
       } catch {
