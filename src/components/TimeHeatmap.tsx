@@ -181,7 +181,7 @@ interface YearBlock {
 export function TimeHeatmap({ entityId, weeks = 52 }: Props) {
   const { t, language } = useLanguage();
   const dateFnsLocale = getDateFnsLocale(language);
-  const dateLocale = getDateLocale(language);
+
   const qc = useQueryClient();
   const to = useMemo(() => new Date(), []);
   const minYear = to.getFullYear() - Math.ceil(weeks / 52);
