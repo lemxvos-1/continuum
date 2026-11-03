@@ -199,9 +199,9 @@
   }
 
   .dark.theme-charcoal {
-    --bg-base: #181817;
-    --background: 60 1.96% 9.8%;
-    --sidebar-background: 60 1.96% 9.8%;
+    --bg-base: #0d1117;
+    --background: 216 27.78% 7.06%;
+    --sidebar-background: 216 27.78% 7.06%;
   }
 
   .dark { color-scheme: dark; }
