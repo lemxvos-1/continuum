@@ -3,7 +3,7 @@
 /* Continuum design tokens — Charcoal theme (mirrors .dark.theme-charcoal in the main app). */
 :root {
   color-scheme: dark;
-  --bg-base: #1d1d1b;
+  --bg-base: #181817;
   --bg-surface: #0D0D0D;
   --bg-surface-2: #161616;
   --bg-hover: #212121;
