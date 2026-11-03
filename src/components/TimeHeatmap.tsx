@@ -5,7 +5,8 @@ import { timeTrackingApi } from '@/lib/api';
 import { useTimeTracking, type TimeEntry } from '@/hooks/useTimeTracking';
 import { useTimerGoal } from '@/hooks/useTimerGoal';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { formatLocalizedDate, getDateFnsLocale, getDateLocale } from '@/lib/date-format';
+import { formatLocalizedDate, getDateFnsLocale } from '@/lib/date-format';
+import { LocalizedDateInput } from '@/components/ui/localized-date-input';
 import SmoothDrawer from '@/components/ui/smooth-drawer';
 import { Button } from '@/components/ui/button';
 import { InfoPopover } from '@/components/ui/info-popover';
@@ -410,14 +411,12 @@ export function TimeHeatmap({ entityId, weeks = 52 }: Props) {
           <div className="space-y-5 px-5 py-5">
             <label className="block space-y-2">
               <span className="text-xs font-medium text-muted-foreground">{t('tm_date')}</span>
-              <input
-                type="date"
-                lang={dateLocale}
+              <LocalizedDateInput
                 value={entryDate}
                 max={dateKey(new Date())}
-                onChange={(event) => setEntryDate(event.target.value)}
-                aria-label={t('tm_date')}
-                className="h-12 w-full rounded-xl border border-border/15 bg-foreground/[0.03] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                onChange={setEntryDate}
+                ariaLabel={t('tm_date')}
+                className="h-12 w-full rounded-xl border border-border/15 bg-foreground/[0.03]"
               />
             </label>
             <fieldset>
