@@ -30,7 +30,7 @@ export default function Pricing() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { user } = useAuth();
-  const isVision = user?.plan === "VISION" || user?.plan === "PRO";
+  const isVision = user?.plan === "VISION";
   const cachedVisionPrice = isVision ? readCachedAdaptivePrice(language) : null;
   const adaptiveCheckout = useAdaptiveCheckout(Boolean(user && !isVision));
   const priceLoading = Boolean(
