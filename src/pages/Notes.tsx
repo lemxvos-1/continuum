@@ -75,18 +75,7 @@ const ARCHIVE_WINDOW = 1000 * 60 * 60 * 24 * 90; // 90d
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
 function extractPreview(content: unknown): string {
-  if (!content) return "";
-  if (typeof content === "string") {
-    return content.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
-  }
-  const out: string[] = [];
-  const walk = (n: unknown) => {
-    if (!n || typeof n !== "object") return;
-    if ("text" in n && typeof n.text === "string") out.push(n.text);
-    if ("content" in n && Array.isArray(n.content)) n.content.forEach(walk);
-  };
-  walk(content);
-  return out.join(" ").replace(/\s+/g, " ").trim();
+  return noteSearchText(content);
 }
 
 function getErrorMessage(error: unknown): string | undefined {
@@ -108,11 +97,12 @@ function extractSearchSnippet(content: unknown, query: string): string {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   if (!normalizedQuery || !preview) return preview;
 
-  const matchIndex = preview.toLocaleLowerCase().indexOf(normalizedQuery);
-  if (matchIndex < 0) return preview;
+  const match = findNoteSearchMatch(preview, normalizedQuery);
+  if (!match) return preview;
+  const matchIndex = match.index;
 
   const start = Math.max(0, matchIndex - 45);
-  const end = Math.min(preview.length, matchIndex + normalizedQuery.length + 90);
+  const end = Math.min(preview.length, matchIndex + match.length + 90);
   return `${start > 0 ? "..." : ""}${preview.slice(start, end)}${end < preview.length ? "..." : ""}`;
 }
 
@@ -508,6 +498,12 @@ export default function Notes() {
     };
   }, [notes, types]);
 
+  const entityNameById = useMemo(() => {
+    const list = queryClient.getQueryData<Array<{ id: string; title?: string }>>(qk.entities());
+    return new Map((Array.isArray(list) ? list : []).map((e) => [e.id, e.title ?? ""]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes, search]);
+
   const filtered = useMemo(() => {
     const now = Date.now();
     const q = search.trim().toLowerCase();
@@ -521,8 +517,9 @@ export default function Notes() {
         if (q) {
           const cachedDetail = queryClient.getQueryData<{ content?: unknown }>(qk.note(n.id));
           const content = n.content ?? searchContentById[n.id] ?? cachedDetail?.content;
-          const hay = `${n.title} ${extractPreview(content)}`.toLowerCase();
-          if (!hay.includes(q)) return false;
+          const entityNames = (n.entityIds ?? []).map((eid) => entityNameById.get(eid)).filter(Boolean).map((name) => `@${name}`).join(" ");
+          const hay = `${n.title} ${extractPreview(content)} ${entityNames}`;
+          if (!matchesNoteSearch(hay, q)) return false;
         }
         return true;
       })
@@ -535,7 +532,7 @@ export default function Notes() {
         const dateB = new Date(b.updatedAt).getTime();
         return sortMode === "recent" ? dateB - dateA : dateA - dateB;
       });
-  }, [notes, view, selectedType, search, sortMode, searchContentById]);
+  }, [notes, view, selectedType, search, sortMode, searchContentById, entityNameById]);
 
   const grouped = useMemo(() => {
     if (sortMode === "az" || sortMode === "za") {
