@@ -382,6 +382,9 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     const [inTable, setInTable] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const updateTimerRef = useRef<number | null>(null);
+    // Baseline of the document as TipTap normalized it on creation. Opening a
+    // note fires onUpdate once (normalization), which must not count as an edit.
+    const initialJsonRef = useRef<string | null>(null);
     const { toast } = useToast();
 
     const uploadFileRef = useRef<(file: File) => Promise<void>>();
@@ -517,11 +520,16 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
         if (updateTimerRef.current) window.clearTimeout(updateTimerRef.current);
         updateTimerRef.current = window.setTimeout(() => {
           if (editor.isDestroyed) return;
-          onChangeRef.current?.(editor.getJSON());
+          const json = editor.getJSON();
+          if (initialJsonRef.current !== null && JSON.stringify(json) === initialJsonRef.current) return;
+          onChangeRef.current?.(json);
         }, 300);
       },
     });
     editorInstanceRef.current = editor;
+    if (editor && initialJsonRef.current === null) {
+      initialJsonRef.current = JSON.stringify(editor.getJSON());
+    }
 
     const uploadFileToVault = useCallback(async (file: File) => {
       if (!editor) return;
