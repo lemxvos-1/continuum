@@ -53,10 +53,12 @@ import SmoothDrawer from "@/components/ui/smooth-drawer";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLongPress } from "@/hooks/useLongPress";
+import { findNoteSearchMatch, matchesNoteSearch, noteSearchText } from "@/lib/note-search";
 
 interface NoteSummary {
   id: string;
   title: string;
+  entityIds?: string[];
   type?: string;
   folderId?: string;
   createdAt: string;
