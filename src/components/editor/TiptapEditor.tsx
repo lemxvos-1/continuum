@@ -112,6 +112,38 @@ const NoteMention = Mention.extend({
   },
 });
 
+/* ── Clipboard ── */
+// Default ProseMirror serialization joins every block with "\n\n", so empty
+// paragraphs explode into huge gaps and mentions can vanish. Serialize blocks
+// with single newlines, keep mentions readable and collapse blank runs.
+const serializeClipboardText = (fragment: any): string => {
+  const lines: string[] = [];
+  const inline = (node: any): string => {
+    if (node.isText) return node.text ?? "";
+    if (node.type.name === "mention" || node.type.name === "noteMention") {
+      const prefix = node.type.name === "noteMention" || node.attrs.type === "NOTE" ? "#" : "@";
+      return `${prefix}${node.attrs.label || node.attrs.id || ""}`;
+    }
+    if (node.type.name === "hardBreak") return "\n";
+    let out = "";
+    node.forEach?.((child: any) => (out += inline(child)));
+    return out;
+  };
+  const block = (node: any) => {
+    if (node.isTextblock) {
+      lines.push(inline(node));
+      return;
+    }
+    if (node.isLeaf) {
+      if (node.isInline) lines.push(inline(node));
+      return;
+    }
+    node.forEach((child: any) => block(child));
+  };
+  fragment.forEach((node: any) => (node.isInline ? lines.push(inline(node)) : block(node)));
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+};
+
 /* ── Caches ── */
 const TTL = 4000;
 type Cache<T> = { token: string | null; at: number; data: T[]; pending: Promise<T[]> | null };
@@ -483,6 +515,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
           autocorrect: editable ? "on" : "off",
           autocapitalize: "sentences",
         },
+        clipboardTextSerializer: (slice) => serializeClipboardText(slice.content),
         handlePaste: (view, event) => {
           const items = event.clipboardData?.items;
           if (!items) return false;
