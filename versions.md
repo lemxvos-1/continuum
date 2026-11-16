@@ -4,6 +4,15 @@ Every notable change to Continuum, from the first release to the latest version.
 
 ---
 
+v1.5.1 — Nov 16, 2026
+
+- Workspaces: Switching workspaces now refreshes the app automatically (web, PWA and Android app).
+- Search: Notes are now found by mentioned entities (with or without @).
+- Editor: Copying text no longer adds piles of blank lines and keeps @mentions readable.
+- Android: Improved returning to the app after Google sign-in, with a manual "Open Continuum" button fallback.
+
+---
+
 v1.5.0 — Nov 5, 2026
 
 - Notes: Fixed opening a note changing its "last modified" date even without any edits.

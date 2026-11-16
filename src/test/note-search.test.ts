@@ -23,6 +23,6 @@ describe("note search with entity mentions", () => {
   });
 
   it("locates the match including the mention", () => {
-    expect(findNoteSearchMatch("fui almoçar com a @ana hoje", "com a ana")).toEqual({ index: 13, length: 9 });
+    expect(findNoteSearchMatch("fui almoçar com a @ana hoje", "com a ana")).toEqual({ index: 12, length: 10 });
   });
 });

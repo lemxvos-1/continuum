@@ -60,9 +60,9 @@ export default function GoogleCallback() {
       // but honour Android intent:// URLs, which target the app package directly.
       const isAndroid = /android/i.test(navigator.userAgent);
       const deepLink = isAndroid
-        ? `intent://google-callback?${query}#Intent;scheme=continuum;package=com.continuumnodes.continuum;end`
+        ? `intent://google-callback?${query}#Intent;scheme=continuum;end`
         : `continuum://google-callback?${query}`;
-      setAppLink(deepLink);
+      setAppLink(`continuum://google-callback?${query}`);
       window.location.href = deepLink;
       return;
     }
